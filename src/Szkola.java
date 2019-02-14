@@ -141,7 +141,7 @@ public class Szkola {
         }
         System.out.println(" ");
         System.out.println("Ilość klas w szkole:                     " + wszystkieKlasy.size());
-       // System.out.println("Ilość wszystkich uczniów w szkole:       " + iloscUczniowSzkole);
+        System.out.println("Ilość wszystkich uczniów w szkole:       " + iloscUczniowSzkole);
        // System.out.println("Ilość wszystkich nauczycieli w szkole:   " + iloscNauczycieliSzkole);
     }
 }
