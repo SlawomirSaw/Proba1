@@ -23,6 +23,5 @@ public class Osoba {
     public void setNazwisko(String nazwisko) {
         this.nazwisko = nazwisko;
     }
-//asd
 }
 

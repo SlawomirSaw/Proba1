@@ -1,6 +1,6 @@
-public class Nauczyciel extends Osoba {
+public class NauczycielPrzedmiotu extends Osoba {
     private String funkcja;
-    public Nauczyciel (String imie, String nazwisko, String przedmiotNauczania)
+    public NauczycielPrzedmiotu(String imie, String nazwisko, String przedmiotNauczania)
     {
         super(imie,nazwisko);
         this.funkcja = przedmiotNauczania;

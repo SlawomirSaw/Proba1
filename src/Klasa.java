@@ -1,25 +1,25 @@
 import java.util.ArrayList;
 
 public class Klasa {
-    private String nazwa;
+    private String nazwaKlasy;
     private ArrayList<Uczen> uczniowie;
-    private ArrayList<Nauczyciel> nauczyciele;
+    private ArrayList<NauczycielPrzedmiotu> nauczyciele;
 
-    public Klasa(String nazwa, ArrayList<Uczen> uczniowie, ArrayList<Nauczyciel> nauczyciele) {
-        this.nazwa = nazwa;
+    public Klasa(String nazwaKlasy, ArrayList<Uczen> uczniowie, ArrayList<NauczycielPrzedmiotu> nauczyciele) {
+        this.nazwaKlasy = nazwaKlasy;
         this.uczniowie = uczniowie;
         this.nauczyciele = nauczyciele;
     }
 
-    public String getNazwa() {
-        return nazwa;
+    public String getNazwaKlasy() {
+        return nazwaKlasy;
     }
 
     public ArrayList<Uczen> getUczniowie() {
         return uczniowie;
     }
 
-    public ArrayList<Nauczyciel> getNauczyciele() {
+    public ArrayList<NauczycielPrzedmiotu> getNauczyciele() {
         return nauczyciele;
     }
 }

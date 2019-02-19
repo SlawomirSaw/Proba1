@@ -14,6 +14,9 @@ public class Szkola {
     public static final int ZESTAWIENIE_SZKOLA = 2;
     public static final int KONIEC = 3;
     public static ArrayList<Klasa> wszystkieKlasy;
+    public static ArrayList<DzienniczekUcznia> dzienniczekUcznia;
+    public static ArrayList<DziennikPrzedmiotu> dziennikiPrzedmiotów;
+
 
     public static void main(String[] args) {
 
@@ -43,7 +46,7 @@ public class Szkola {
 
     private static void OpcjeWyboru() {
         System.out.println("OpcjeWyboru");
-        System.out.println("WYBIERZ:    WPROWADZANIE_DANYCH = 1" + "    " + "ZESTAWIENIE_INFORMACJI_O_KLASACH = 2" + "   " + "KONIEC = 3");
+        System.out.println("WYBIERZ:    WPROWADZANIE_DANYCH UCZNIÓW I NAUCZYCIELI KLAS = 1" + "ZESTAWIENIE_INFORMACJI_O_KLASACH = 2" + "   " + "KONIEC = 3");
     }
 
 
@@ -51,7 +54,9 @@ public class Szkola {
 
         wszystkieKlasy = new ArrayList<>();
         ArrayList<Uczen> uczniowieKlasy;
-        ArrayList<Nauczyciel> nauczycieleKlasy;
+        ArrayList<NauczycielPrzedmiotu> nauczycieleKlasy;
+        ArrayList<DzienniczekUcznia> dzienniczekUcznia;
+        ArrayList<DziennikKlasowy> dziennikKlasowy;
         Klasa klasa;
 
         String imieDyrektora;
@@ -74,23 +79,13 @@ public class Szkola {
         for (int i = 0; i < iloscKlasSzkole; i++) {
             uczniowieKlasy = new ArrayList<>();
             nauczycieleKlasy = new ArrayList<>();
+            dzienniczekUcznia = new ArrayList<>();
+            dziennikKlasowy = new ArrayList<>();
+
 
             System.out.print("  Podaj Numer lub Nazwę klasy ---------------------------- Klasa Nr : ");
             String nazwaKlasy = sc.nextLine();
 
-            System.out.print("Ilość uczniów w klasie Nr " + nazwaKlasy + " : ");
-            iloscUczniowKlasie = sc.nextInt();
-            System.out.println(" ");
-            System.out.println("Podaj Imiona i Nazwiska uczniów klasy Nr " + nazwaKlasy + " : ");
-            sc.nextLine();
-            for (int j = 0; j < iloscUczniowKlasie; j++) {
-                System.out.print(j + 1 + ") imię: ");
-                String imieUcznia = sc.nextLine();
-                System.out.print(j + 1 + ") nazwisko: ");
-                String nazwiskoUcznia = sc.nextLine();
-                System.out.println(" ");
-                uczniowieKlasy.add(j, new Uczen(imieUcznia, nazwiskoUcznia));
-            }
 
             System.out.print("Ilość nauczycieli uczących w klasie Nr " + nazwaKlasy + " : ");
             iloscNauczycieliKlasie = sc.nextInt();
@@ -104,13 +99,39 @@ public class Szkola {
                 System.out.print(j + 1 + ") funkacja: ");
                 String funkcjaNauczyciela = sc.nextLine();
                 System.out.println(" ");
-                nauczycieleKlasy.add(j, new Nauczyciel(imieNauczyciela, nazwiskoNauczyciela, funkcjaNauczyciela));
+                nauczycieleKlasy.add(j, new NauczycielPrzedmiotu(imieNauczyciela, nazwiskoNauczyciela, funkcjaNauczyciela));
+            }
+
+            System.out.print("Ilość uczniów w klasie Nr " + nazwaKlasy + " : ");
+            iloscUczniowKlasie = sc.nextInt();
+            System.out.println(" ");
+            System.out.println("Podaj Imiona i Nazwiska uczniów klasy Nr " + nazwaKlasy + " : ");
+            sc.nextLine();
+            for (int j = 0; j < iloscUczniowKlasie; j++) {
+                System.out.print(j + 1 + ") imię: ");
+                String imieUcznia = sc.nextLine();
+                System.out.print(j + 1 + ") nazwisko: ");
+                String nazwiskoUcznia = sc.nextLine();
+                System.out.println(" ");
+                System.out.println("Podaj oceny z poszczególnych przedmiotów:");
+                ArrayList ocena = new ArrayList();
+                for (int k = 0; k < iloscNauczycieliKlasie; k++) {
+                    System.out.print(nauczycieleKlasy.get(k).getFunkcja() + "     ocena: ");
+                    ocena.add(k, sc.nextInt());
+                }
+                OcenyPrzedmiotu ocenyPrzedmiotu = new OcenyPrzedmiotu(ocena);
+                Uczen uczen = new Uczen(imieUcznia, nazwiskoUcznia);
+                uczniowieKlasy.add(j, uczen);
+                dzienniczekUcznia.add(j, new DzienniczekUcznia(uczen, nauczycieleKlasy, ocena));
+
             }
             klasa = new Klasa(nazwaKlasy, uczniowieKlasy, nauczycieleKlasy);
             wszystkieKlasy.add(i, klasa);
+            dziennikKlasowy.add(i, new DziennikKlasowy(nazwaKlasy, dzienniczekUcznia));
         }
         //Szkola szkola = new Szkola(nazwaSzkoly, wszystkieKlasy, dyrektorSzkoly);
     }
+
 
     private static void Zestawienie_Szkola() {
 
@@ -123,7 +144,7 @@ public class Szkola {
 
         for (int i = 0; i < wszystkieKlasy.size(); i++) {
             System.out.println(" ");
-            System.out.println("----------- Dane klasy Nr: " + wszystkieKlasy.get(i).getNazwa() + " ----------- ");
+            System.out.println("----------- Dane klasy Nr: " + wszystkieKlasy.get(i).getNazwaKlasy() + " ----------- ");
             System.out.println("Ilość uczniów w klasie: " + wszystkieKlasy.get(i).getUczniowie().size());
             iloscUczniowSzkole += wszystkieKlasy.get(i).getUczniowie().size();
 
@@ -142,6 +163,6 @@ public class Szkola {
         System.out.println(" ");
         System.out.println("Ilość klas w szkole:                     " + wszystkieKlasy.size());
         System.out.println("Ilość wszystkich uczniów w szkole:       " + iloscUczniowSzkole);
-       // System.out.println("Ilość wszystkich nauczycieli w szkole:   " + iloscNauczycieliSzkole);
+        System.out.println("Ilość wszystkich nauczycieli w szkole:   " + iloscNauczycieliSzkole);
     }
 }
