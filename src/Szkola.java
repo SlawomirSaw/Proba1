@@ -3,8 +3,8 @@ import java.util.ArrayList;
 
 
 public class Szkola {
-    public static int iloscKlasSzkole;
-    public static int iloscUczniowKlasie;
+    public static int iloscKlasSzkole = 0;
+    public static int iloscUczniowKlasie = 0;
     public static String nazwaSzkoly;
     public static DyrektorSzkoly dyrektorSzkoly;
     public static int iloscNauczycieliKlasie = 0;
@@ -14,8 +14,12 @@ public class Szkola {
     public static final int ZESTAWIENIE_SZKOLA = 2;
     public static final int KONIEC = 3;
     public static ArrayList<Klasa> wszystkieKlasy;
+    public static ArrayList<DziennikKlasowy> dziennikKlasowy;
     public static ArrayList<DzienniczekUcznia> dzienniczekUcznia;
     public static ArrayList<DziennikPrzedmiotu> dziennikiPrzedmiotów;
+    public static ArrayList<Uczen> uczniowieKlasy;
+    public static ArrayList<NauczycielPrzedmiotu> nauczycieleKlasy;
+    public static ArrayList<OcenyPrzedmiotu> ocenyPrzedmiotu;
 
 
     public static void main(String[] args) {
@@ -46,17 +50,14 @@ public class Szkola {
 
     private static void OpcjeWyboru() {
         System.out.println("OpcjeWyboru");
-        System.out.println("WYBIERZ:    WPROWADZANIE_DANYCH UCZNIÓW I NAUCZYCIELI KLAS = 1" + "ZESTAWIENIE_INFORMACJI_O_KLASACH = 2" + "   " + "KONIEC = 3");
+        System.out.println("WYBIERZ:    WPROWADZANIE_DANYCH UCZNIÓW I NAUCZYCIELI KLAS = 1  " + "ZESTAWIENIE_INFORMACJI_O_KLASACH = 2" + "   " + "KONIEC = 3");
     }
 
 
     private static void Wprowadzanie_Danych(Scanner sc) {
 
         wszystkieKlasy = new ArrayList<>();
-        ArrayList<Uczen> uczniowieKlasy;
-        ArrayList<NauczycielPrzedmiotu> nauczycieleKlasy;
-        ArrayList<DzienniczekUcznia> dzienniczekUcznia;
-        ArrayList<DziennikKlasowy> dziennikKlasowy;
+        dziennikKlasowy = new ArrayList<>();
         Klasa klasa;
 
         String imieDyrektora;
@@ -80,7 +81,7 @@ public class Szkola {
             uczniowieKlasy = new ArrayList<>();
             nauczycieleKlasy = new ArrayList<>();
             dzienniczekUcznia = new ArrayList<>();
-            dziennikKlasowy = new ArrayList<>();
+            ocenyPrzedmiotu = new ArrayList<>();
 
 
             System.out.print("  Podaj Numer lub Nazwę klasy ---------------------------- Klasa Nr : ");
@@ -104,30 +105,30 @@ public class Szkola {
 
             System.out.print("Ilość uczniów w klasie Nr " + nazwaKlasy + " : ");
             iloscUczniowKlasie = sc.nextInt();
-            System.out.println(" ");
-            System.out.println("Podaj Imiona i Nazwiska uczniów klasy Nr " + nazwaKlasy + " : ");
+            //System.out.println(" ");
+            System.out.println("Podaj Imiona, Nazwiska i oceny uczniów klasy Nr " + nazwaKlasy + " : ");
             sc.nextLine();
             for (int j = 0; j < iloscUczniowKlasie; j++) {
                 System.out.print(j + 1 + ") imię: ");
                 String imieUcznia = sc.nextLine();
                 System.out.print(j + 1 + ") nazwisko: ");
                 String nazwiskoUcznia = sc.nextLine();
-                System.out.println(" ");
-                System.out.println("Podaj oceny z poszczególnych przedmiotów:");
+                System.out.println("        oceny z poszczególnych przedmiotów:");
                 ArrayList ocena = new ArrayList();
                 for (int k = 0; k < iloscNauczycieliKlasie; k++) {
-                    System.out.print(nauczycieleKlasy.get(k).getFunkcja() + "     ocena: ");
+                    System.out.print("      " + nauczycieleKlasy.get(k).getFunkcja() + "     ocena: ");
                     ocena.add(k, sc.nextInt());
                 }
-                OcenyPrzedmiotu ocenyPrzedmiotu = new OcenyPrzedmiotu(ocena);
+                System.out.println(" ");
+                sc.nextLine();
                 Uczen uczen = new Uczen(imieUcznia, nazwiskoUcznia);
                 uczniowieKlasy.add(j, uczen);
                 dzienniczekUcznia.add(j, new DzienniczekUcznia(uczen, nauczycieleKlasy, ocena));
+                ocenyPrzedmiotu.add(j, new OcenyPrzedmiotu(ocena));
 
             }
-            klasa = new Klasa(nazwaKlasy, uczniowieKlasy, nauczycieleKlasy);
-            wszystkieKlasy.add(i, klasa);
-            dziennikKlasowy.add(i, new DziennikKlasowy(nazwaKlasy, dzienniczekUcznia));
+            wszystkieKlasy.add(i, new Klasa(nazwaKlasy, uczniowieKlasy, nauczycieleKlasy));
+            dziennikKlasowy.add(i, new DziennikKlasowy(nazwaKlasy, uczniowieKlasy, nauczycieleKlasy, ocenyPrzedmiotu));
         }
         //Szkola szkola = new Szkola(nazwaSzkoly, wszystkieKlasy, dyrektorSzkoly);
     }
@@ -135,8 +136,8 @@ public class Szkola {
 
     private static void Zestawienie_Szkola() {
 
-        iloscUczniowSzkole = 0;
-        iloscNauczycieliSzkole = 0;
+        //iloscUczniowSzkole = 0;
+        //iloscNauczycieliSzkole = 0;
         System.out.println("------------------------- ZESTAWIENIE_INFORMACJI_O_SZKLOLE -------------------------");
         System.out.println(" ");
         System.out.println("Nazwa Szkoły: " + nazwaSzkoly);
@@ -146,23 +147,30 @@ public class Szkola {
             System.out.println(" ");
             System.out.println("----------- Dane klasy Nr: " + wszystkieKlasy.get(i).getNazwaKlasy() + " ----------- ");
             System.out.println("Ilość uczniów w klasie: " + wszystkieKlasy.get(i).getUczniowie().size());
-            iloscUczniowSzkole += wszystkieKlasy.get(i).getUczniowie().size();
+            //iloscUczniowSzkole += wszystkieKlasy.get(i).getUczniowie().size();
 
             for (int j = 0; j < wszystkieKlasy.get(i).getUczniowie().size(); j++) {
-                System.out.println(j + 1 + ") " + wszystkieKlasy.get(i).getUczniowie().get(j).getImie() + " " + wszystkieKlasy.get(i).getUczniowie().get(j).getNazwisko());
+                System.out.print(j + 1 + ") " + wszystkieKlasy.get(i).getUczniowie().get(j).getImie() + " " + wszystkieKlasy.get(i).getUczniowie().get(j).getNazwisko() + "    ");
+
+                for (int k = 0; k < wszystkieKlasy.get(i).getNauczyciele().size(); k++) {
+                    System.out.print(wszystkieKlasy.get(i).getNauczyciele().get(k).getFunkcja() + "  ");
+                    System.out.print(dziennikKlasowy.get(i).getOcenyPrzedmiotu().get(j).getOcenyPrzedmiotu().get(k) + "    ");
+                }
+                System.out.println(" ");
             }
 
             System.out.println(" ");
             System.out.println("Ilość nauczycieli w klasie: " + wszystkieKlasy.get(i).getNauczyciele().size());
-            iloscNauczycieliSzkole += wszystkieKlasy.get(i).getNauczyciele().size();
+            //iloscNauczycieliSzkole += wszystkieKlasy.get(i).getNauczyciele().size();
             for (int j = 0; j < wszystkieKlasy.get(i).getNauczyciele().size(); j++) {
                 System.out.println(j + 1 + ") " + wszystkieKlasy.get(i).getNauczyciele().get(j).getImie() + " " + wszystkieKlasy.get(i).getNauczyciele().get(j).getNazwisko());
                 System.out.println(wszystkieKlasy.get(i).getNauczyciele().get(j).getFunkcja());
             }
         }
+        Obliczenia obliczenia = new Obliczenia(dziennikKlasowy);
         System.out.println(" ");
-        System.out.println("Ilość klas w szkole:                     " + wszystkieKlasy.size());
-        System.out.println("Ilość wszystkich uczniów w szkole:       " + iloscUczniowSzkole);
-        System.out.println("Ilość wszystkich nauczycieli w szkole:   " + iloscNauczycieliSzkole);
+        System.out.println("Ilość klas w szkole:                     " + obliczenia.getIloscKlasSzkole());
+        System.out.println("Ilość wszystkich uczniów w szkole:       " + obliczenia.getIloscUczniowSzkole());
+        System.out.println("Ilość wszystkich nauczycieli w szkole:   " + obliczenia.getIloscNauczycieliSzkole());
     }
 }
