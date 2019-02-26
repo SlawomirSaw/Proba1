@@ -2,10 +2,10 @@ import java.util.Scanner;
 import java.util.ArrayList;
 
 
-public class Szkola {
+public class Szkola implements DaneSzkoly {
     public static int iloscKlasSzkole = 0;
     public static int iloscUczniowKlasie = 0;
-    public static String nazwaSzkoly;
+    //public static String nazwaSzkoly;
     public static DyrektorSzkoly dyrektorSzkoly;
     public static int iloscNauczycieliKlasie = 0;
     public static int iloscUczniowSzkole = 0;
@@ -64,8 +64,8 @@ public class Szkola {
         String nazwiskoDyrekotora;
 
         System.out.println("------------------------- Wprowadzanie danych szkoły -------------------------");
-        System.out.print("Nazwa Szkoły: ");
-        nazwaSzkoly = sc.nextLine();
+        System.out.println("Nazwa Szkoły: " + NAZWA_SZKOLY);
+        //nazwaSzkoly = sc.nextLine();
         System.out.print("Dyrektor Szkoły: ");
         System.out.print("Imie: ");
         imieDyrektora = sc.nextLine();
@@ -140,7 +140,7 @@ public class Szkola {
         //iloscNauczycieliSzkole = 0;
         System.out.println("------------------------- ZESTAWIENIE_INFORMACJI_O_SZKLOLE -------------------------");
         System.out.println(" ");
-        System.out.println("Nazwa Szkoły: " + nazwaSzkoly);
+        System.out.println("Nazwa Szkoły: " + NAZWA_SZKOLY);
         System.out.println("Dyrektor Szkoły: " + dyrektorSzkoly.getImie() + " " + dyrektorSzkoly.getNazwisko());
 
         for (int i = 0; i < wszystkieKlasy.size(); i++) {
