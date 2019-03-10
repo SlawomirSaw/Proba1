@@ -2,10 +2,10 @@ import java.util.ArrayList;
 
 public class DzienniczekUcznia {
     private Uczen uczen;
-    private ArrayList<NauczycielPrzedmiotu> nauczycielePrzedmiotow;
+    private ArrayList<Nauczyciel> nauczycielePrzedmiotow;
     private ArrayList ocenyPrzedmiotow;
 
-    public DzienniczekUcznia(Uczen uczen, ArrayList<NauczycielPrzedmiotu> nauczycielePrzedmiotow, ArrayList ocenyPrzedmiotow) {
+    public DzienniczekUcznia(Uczen uczen, ArrayList<Nauczyciel> nauczycielePrzedmiotow, ArrayList ocenyPrzedmiotow) {
         this.uczen = uczen;
         this.nauczycielePrzedmiotow = nauczycielePrzedmiotow;
         this.ocenyPrzedmiotow = ocenyPrzedmiotow;
@@ -19,11 +19,11 @@ public class DzienniczekUcznia {
         this.uczen = uczen;
     }
 
-    public ArrayList<NauczycielPrzedmiotu> getNauczycielePrzedmiotow() {
+    public ArrayList<Nauczyciel> getNauczycielePrzedmiotow() {
         return nauczycielePrzedmiotow;
     }
 
-    public void setNauczycielePrzedmiotow(ArrayList<NauczycielPrzedmiotu> nauczycielePrzedmiotow) {
+    public void setNauczycielePrzedmiotow(ArrayList<Nauczyciel> nauczycielePrzedmiotow) {
         this.nauczycielePrzedmiotow = nauczycielePrzedmiotow;
     }
 

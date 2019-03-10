@@ -30,7 +30,7 @@ public class Obliczenia {
 
     public int getIloscNauczycieliSzkole() {
         for (int i = 0; i < wszystkieDzienniki.size(); i++) {
-            iloscNauczycieliSzkole += wszystkieDzienniki.get(i).getNauczyciele().size();
+            iloscNauczycieliSzkole += wszystkieDzienniki.get(i).getNauczycieleKlasy().size();
         }
         return iloscNauczycieliSzkole;
     }

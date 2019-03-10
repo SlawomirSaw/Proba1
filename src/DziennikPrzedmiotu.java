@@ -1,19 +1,19 @@
 import java.util.ArrayList;
 
 public class DziennikPrzedmiotu {
-    private NauczycielPrzedmiotu nauczyciel;
+    private Nauczyciel nauczyciel;
     private ArrayList <DzienniczekUcznia> OcenyUczniow;
 
-    public DziennikPrzedmiotu(NauczycielPrzedmiotu nauczyciel, ArrayList<DzienniczekUcznia> ocenyUczniow) {
+    public DziennikPrzedmiotu(Nauczyciel nauczyciel, ArrayList<DzienniczekUcznia> ocenyUczniow) {
         this.nauczyciel = nauczyciel;
         OcenyUczniow = ocenyUczniow;
     }
 
-    public NauczycielPrzedmiotu getNauczyciel() {
+    public Nauczyciel getNauczyciel() {
         return nauczyciel;
     }
 
-    public void setNauczyciel(NauczycielPrzedmiotu nauczyciel) {
+    public void setNauczyciel(Nauczyciel nauczyciel) {
         this.nauczyciel = nauczyciel;
     }
 

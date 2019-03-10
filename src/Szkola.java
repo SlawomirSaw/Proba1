@@ -1,25 +1,34 @@
 import java.util.Scanner;
 import java.util.ArrayList;
 
-
 public class Szkola implements DaneSzkoly {
     public static int iloscKlasSzkole = 0;
     public static int iloscUczniowKlasie = 0;
+    public static int indexNauczycieli = 0;
+    public static int indexKlas = 0;
     //public static String nazwaSzkoly;
     public static DyrektorSzkoly dyrektorSzkoly;
-    public static int iloscNauczycieliKlasie = 0;
+    public static int iloscPrzedmiotowNauczaniaKlasy = 0;
     public static int iloscUczniowSzkole = 0;
     public static int iloscNauczycieliSzkole = 0;
     public static final int WPROWADZANIE_DANYCH = 1;
     public static final int ZESTAWIENIE_SZKOLA = 2;
     public static final int KONIEC = 3;
-    public static ArrayList<Klasa> wszystkieKlasy;
+    public static final int ZMIANA_DANYCH_NAUCZYCIELI = 4;
+    //public static ArrayList<Klasa> wszystkieKlasy;
     public static ArrayList<DziennikKlasowy> dziennikKlasowy;
+    public static DziennikiKlasowe dziennikiKlasowe;
     public static ArrayList<DzienniczekUcznia> dzienniczekUcznia;
+    public static ArrayList dziennczkiUczniow;
     public static ArrayList<DziennikPrzedmiotu> dziennikiPrzedmiotów;
     public static ArrayList<Uczen> uczniowieKlasy;
-    public static ArrayList<NauczycielPrzedmiotu> nauczycieleKlasy;
-    public static ArrayList<OcenyPrzedmiotu> ocenyPrzedmiotu;
+    public static ArrayList<Nauczyciel> nauczycieleKlasy;
+    public static ArrayList<Nauczyciel> nauczycieleSzkoly;
+    public static ArrayList<OcenyUcznia> ocenyUczniow;
+    public static String imieNauczyciela;
+    public static String nazwiskoNauczyciela;
+    public static String przedmiotNauczania;
+    public static String nazwaKlasy;
 
 
     public static void main(String[] args) {
@@ -42,6 +51,9 @@ public class Szkola implements DaneSzkoly {
                 case KONIEC:
                     System.out.println("-------------Koniec--------------");
                     break;
+                case ZMIANA_DANYCH_NAUCZYCIELI:
+                    zmianaDanychNauczycieli(sc);
+                    break;
             }
         } while (option != KONIEC);
         sc.close();
@@ -49,17 +61,13 @@ public class Szkola implements DaneSzkoly {
 
 
     private static void OpcjeWyboru() {
+
         System.out.println("OpcjeWyboru");
-        System.out.println("WYBIERZ:    WPROWADZANIE_DANYCH UCZNIÓW I NAUCZYCIELI KLAS = 1  " + "ZESTAWIENIE_INFORMACJI_O_KLASACH = 2" + "   " + "KONIEC = 3");
+        System.out.println("WYBIERZ:    WPROWADZANIE_DANYCH UCZNIÓW I NAUCZYCIELI KLAS = 1  " + "ZESTAWIENIE_INFORMACJI_O_KLASACH = 2" + "   " + "KONIEC = 3" + "    " + "ZMIANA DANYCH NAUCZYCIELI = 4");
     }
 
 
     private static void Wprowadzanie_Danych(Scanner sc) {
-
-        wszystkieKlasy = new ArrayList<>();
-        dziennikKlasowy = new ArrayList<>();
-        Klasa klasa;
-
         String imieDyrektora;
         String nazwiskoDyrekotora;
 
@@ -77,35 +85,42 @@ public class Szkola implements DaneSzkoly {
         System.out.println(" ");
         sc.nextLine();
 
+        indexNauczycieli = 0;
+        indexKlas = 0;
+        //wszystkieKlasy = new ArrayList<>();
+        dziennikKlasowy = new ArrayList<>();
+        nauczycieleSzkoly = new ArrayList<>();
+        dziennczkiUczniow = new ArrayList();
         for (int i = 0; i < iloscKlasSzkole; i++) {
             uczniowieKlasy = new ArrayList<>();
             nauczycieleKlasy = new ArrayList<>();
             dzienniczekUcznia = new ArrayList<>();
-            ocenyPrzedmiotu = new ArrayList<>();
+            ocenyUczniow = new ArrayList<>();
 
 
             System.out.print("  Podaj Numer lub Nazwę klasy ---------------------------- Klasa Nr : ");
             String nazwaKlasy = sc.nextLine();
 
 
-            System.out.print("Ilość nauczycieli uczących w klasie Nr " + nazwaKlasy + " : ");
-            iloscNauczycieliKlasie = sc.nextInt();
+            System.out.print("Ilość przedmiotów nauczania w klasie Nr " + nazwaKlasy + " : ");
+            iloscPrzedmiotowNauczaniaKlasy = sc.nextInt();
             System.out.println("Podaj Imiona, Nazwiska i Funkcje nauczycieli klasy Nr " + nazwaKlasy + " : ");
             sc.nextLine();
-            for (int j = 0; j < iloscNauczycieliKlasie; j++) {
+            for (int j = 0; j < iloscPrzedmiotowNauczaniaKlasy; j++) {
                 System.out.print(j + 1 + ") imię: ");
                 String imieNauczyciela = sc.nextLine();
                 System.out.print(j + 1 + ") nazwisko: ");
                 String nazwiskoNauczyciela = sc.nextLine();
-                System.out.print(j + 1 + ") funkacja: ");
-                String funkcjaNauczyciela = sc.nextLine();
+                System.out.print(j + 1 + ") przedmiot nauczania: ");
+                String przedmiotNauczania = sc.nextLine();
                 System.out.println(" ");
-                nauczycieleKlasy.add(j, new NauczycielPrzedmiotu(imieNauczyciela, nazwiskoNauczyciela, funkcjaNauczyciela));
+                nauczycieleKlasy.add(j, new Nauczyciel(indexNauczycieli, imieNauczyciela, nazwiskoNauczyciela, nazwaKlasy, przedmiotNauczania));
+                nauczycieleSzkoly.add(i, new Nauczyciel(indexNauczycieli, imieNauczyciela, nazwiskoNauczyciela, nazwaKlasy, przedmiotNauczania));
+                indexNauczycieli++;
             }
 
             System.out.print("Ilość uczniów w klasie Nr " + nazwaKlasy + " : ");
             iloscUczniowKlasie = sc.nextInt();
-            //System.out.println(" ");
             System.out.println("Podaj Imiona, Nazwiska i oceny uczniów klasy Nr " + nazwaKlasy + " : ");
             sc.nextLine();
             for (int j = 0; j < iloscUczniowKlasie; j++) {
@@ -114,23 +129,30 @@ public class Szkola implements DaneSzkoly {
                 System.out.print(j + 1 + ") nazwisko: ");
                 String nazwiskoUcznia = sc.nextLine();
                 System.out.println("        oceny z poszczególnych przedmiotów:");
-                ArrayList ocena = new ArrayList();
-                for (int k = 0; k < iloscNauczycieliKlasie; k++) {
-                    System.out.print("      " + nauczycieleKlasy.get(k).getFunkcja() + "     ocena: ");
-                    ocena.add(k, sc.nextInt());
+                ArrayList ocenyUcznia = new ArrayList<>();
+                for (int k = 0; k < iloscPrzedmiotowNauczaniaKlasy; k++) {
+                    System.out.print("      " + nauczycieleKlasy.get(k).getPrzedmiotNauczania() + "     ocena: ");
+                    //ArrayList oceny = new ArrayList();
+                    int ocena = sc.nextInt();
+                    ocenyUcznia.add(ocena);
                 }
+
                 System.out.println(" ");
                 sc.nextLine();
                 Uczen uczen = new Uczen(imieUcznia, nazwiskoUcznia);
                 uczniowieKlasy.add(j, uczen);
-                dzienniczekUcznia.add(j, new DzienniczekUcznia(uczen, nauczycieleKlasy, ocena));
-                ocenyPrzedmiotu.add(j, new OcenyPrzedmiotu(ocena));
+                dzienniczekUcznia.add(j, new DzienniczekUcznia(uczen, nauczycieleKlasy, ocenyUcznia));
+                ocenyUczniow.add(j, new OcenyUcznia(j, ocenyUcznia));
 
             }
-            wszystkieKlasy.add(i, new Klasa(nazwaKlasy, uczniowieKlasy, nauczycieleKlasy));
-            dziennikKlasowy.add(i, new DziennikKlasowy(nazwaKlasy, uczniowieKlasy, nauczycieleKlasy, ocenyPrzedmiotu));
+            dziennczkiUczniow.add(i, dzienniczekUcznia);
+            //wszystkieKlasy.add(i, new Klasa(indexKlas, nazwaKlasy, uczniowieKlasy, nauczycieleKlasy));
+            //dziennikiKlasowe.add(i, new DziennikKlasowy(indexKlas, nazwaKlasy, uczniowieKlasy, nauczycieleKlasy, ocenyUczniow));
+            dziennikKlasowy.add(i, new DziennikKlasowy(indexKlas, nazwaKlasy, uczniowieKlasy, nauczycieleKlasy, ocenyUczniow));
+            indexKlas++;
         }
         //Szkola szkola = new Szkola(nazwaSzkoly, wszystkieKlasy, dyrektorSzkoly);
+        dziennikiKlasowe = new DziennikiKlasowe(dziennikKlasowy);
     }
 
 
@@ -143,28 +165,29 @@ public class Szkola implements DaneSzkoly {
         System.out.println("Nazwa Szkoły: " + NAZWA_SZKOLY);
         System.out.println("Dyrektor Szkoły: " + dyrektorSzkoly.getImie() + " " + dyrektorSzkoly.getNazwisko());
 
-        for (int i = 0; i < wszystkieKlasy.size(); i++) {
+        for (int i = 0; i < dziennikKlasowy.size(); i++) {
             System.out.println(" ");
-            System.out.println("----------- Dane klasy Nr: " + wszystkieKlasy.get(i).getNazwaKlasy() + " ----------- ");
-            System.out.println("Ilość uczniów w klasie: " + wszystkieKlasy.get(i).getUczniowie().size());
+            System.out.println("----------- Dane klasy Nr " + dziennikKlasowy.get(i).getNazwaKlasy() + " ----------- ");
+            System.out.println("Ilość uczniów w klasie: " + dziennikKlasowy.get(i).getUczniowie().size() + " (imie,nazwisko/przedmiot/oceny)");
             //iloscUczniowSzkole += wszystkieKlasy.get(i).getUczniowie().size();
 
-            for (int j = 0; j < wszystkieKlasy.get(i).getUczniowie().size(); j++) {
-                System.out.print(j + 1 + ") " + wszystkieKlasy.get(i).getUczniowie().get(j).getImie() + " " + wszystkieKlasy.get(i).getUczniowie().get(j).getNazwisko() + "    ");
+            for (int j = 0; j < dziennikKlasowy.get(i).getUczniowie().size(); j++) {
+                System.out.print(j + 1 + ") " + dziennikKlasowy.get(i).getUczniowie().get(j).getImie() + " " + dziennikKlasowy.get(i).getUczniowie().get(j).getNazwisko() + "    ");
 
-                for (int k = 0; k < wszystkieKlasy.get(i).getNauczyciele().size(); k++) {
-                    System.out.print(wszystkieKlasy.get(i).getNauczyciele().get(k).getFunkcja() + "  ");
-                    System.out.print(dziennikKlasowy.get(i).getOcenyPrzedmiotu().get(j).getOcenyPrzedmiotu().get(k) + "    ");
+                for (int k = 0; k < dziennikKlasowy.get(i).getNauczycieleKlasy().size(); k++) {
+                    System.out.print(dziennikKlasowy.get(i).getNauczycieleKlasy().get(k).getPrzedmiotNauczania() + "  ");
+                    System.out.print(dziennikKlasowy.get(i).getOcenyUcznia().get(j).getOcenyPrzedmiotu().get(k) + "    ");
+                    //System.out.print(dziennikiKlasowe.getDziennikiKlasowe().get(i).getOcenyUcznia().get(j).getOcenyPrzedmiotu().get(k) + "    ");
                 }
                 System.out.println(" ");
             }
 
             System.out.println(" ");
-            System.out.println("Ilość nauczycieli w klasie: " + wszystkieKlasy.get(i).getNauczyciele().size());
+            System.out.println("Ilość nauczycieli w klasie: " + dziennikKlasowy.get(i).getNauczycieleKlasy().size());
             //iloscNauczycieliSzkole += wszystkieKlasy.get(i).getNauczyciele().size();
-            for (int j = 0; j < wszystkieKlasy.get(i).getNauczyciele().size(); j++) {
-                System.out.println(j + 1 + ") " + wszystkieKlasy.get(i).getNauczyciele().get(j).getImie() + " " + wszystkieKlasy.get(i).getNauczyciele().get(j).getNazwisko());
-                System.out.println(wszystkieKlasy.get(i).getNauczyciele().get(j).getFunkcja());
+            for (int j = 0; j < dziennikKlasowy.get(i).getNauczycieleKlasy().size(); j++) {
+                System.out.println(j + 1 + ") " + dziennikKlasowy.get(i).getNauczycieleKlasy().get(j).getImie() + " " + dziennikKlasowy.get(i).getNauczycieleKlasy().get(j).getNazwisko());
+                System.out.println(dziennikKlasowy.get(i).getNauczycieleKlasy().get(j).getPrzedmiotNauczania());
             }
         }
         Obliczenia obliczenia = new Obliczenia(dziennikKlasowy);
@@ -172,5 +195,92 @@ public class Szkola implements DaneSzkoly {
         System.out.println("Ilość klas w szkole:                     " + obliczenia.getIloscKlasSzkole());
         System.out.println("Ilość wszystkich uczniów w szkole:       " + obliczenia.getIloscUczniowSzkole());
         System.out.println("Ilość wszystkich nauczycieli w szkole:   " + obliczenia.getIloscNauczycieliSzkole());
+    }
+
+    private static void zmianaDanychNauczycieli(Scanner sc) {
+        String wprowadzenie;
+        String zmienioneImie;
+        String zmienioneNazwisko;
+        String zmienionaKlasa;
+        String zmienionyPrzedmiot;
+        if (nauczycieleKlasy.size() < 0) {
+            System.out.println("Nie ma wprowadzonych żadnych danych o nauczycielach");
+        } else {
+            System.out.println("------------------------- ZMIANA DANYCH NAUCZYCIELI -------------------------");
+            System.out.println("ENTER - zatwierdzaj po wprowadzeniu zmian lub pozostawieniu bez zmian");
+            int m = 0;
+            for (int j = 0; j < dziennikKlasowy.size(); j++) {
+
+
+                for (int k = 0; k < dziennikKlasowy.get(j).getNauczycieleKlasy().size(); k++) {
+                    System.out.println(" ");
+                    System.out.print("Imie: " + dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getImie() + "    ?");
+                    zmienioneImie = sc.nextLine();
+                    if (zmienioneImie.equals("")) {
+                        System.out.println("   ---------- Bez zmiany");
+                    } else {
+                        Nauczyciel nauczycielDoZmiany = nauczycieleSzkoly.get(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        Nauczyciel zmienionyNauczyciel = nauczycielDoZmiany.imieDoZmiany(zmienioneImie);
+                        nauczycieleSzkoly.remove(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        nauczycieleSzkoly.add(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex(), zmienionyNauczyciel);
+                        DziennikiKlasowe dziennikiKlasoweDoZmiany = dziennikiKlasowe;
+                        DziennikiKlasowe zmienionyDziennikKlasowy = dziennikiKlasoweDoZmiany.dziennikiKlasoweDoZmiany(nauczycieleSzkoly, dziennikKlasowy);
+                        dziennikKlasowy = zmienionyDziennikKlasowy.getDziennikiKlasowe();
+                        dziennikiKlasowe = zmienionyDziennikKlasowy;
+                    }
+
+                    System.out.print("Nazwisko: " + dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getNazwisko() + "    ?");
+                    zmienioneNazwisko = sc.nextLine();
+                    if (zmienioneNazwisko.equals("")) {
+                        System.out.println("   ---------- Bez zmiany");
+                    } else {
+                        Nauczyciel nauczycielDoZmiany = nauczycieleSzkoly.get(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        Nauczyciel zmienionyNauczyciel = nauczycielDoZmiany.nazwiskoDoZmiany(zmienioneNazwisko);
+                        nauczycieleSzkoly.remove(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        nauczycieleSzkoly.add(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex(), zmienionyNauczyciel);
+                        DziennikiKlasowe dziennikiKlasoweDoZmiany = dziennikiKlasowe;
+                        DziennikiKlasowe zmienionyDziennikKlasowy = dziennikiKlasoweDoZmiany.dziennikiKlasoweDoZmiany(nauczycieleSzkoly, dziennikKlasowy);
+                        dziennikKlasowy = zmienionyDziennikKlasowy.getDziennikiKlasowe();
+                        dziennikiKlasowe = zmienionyDziennikKlasowy;
+                    }
+
+                    System.out.print("Klasa: " + dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getNazwaKlasy() + "    ?");
+                    zmienionaKlasa = sc.nextLine();
+                    if (zmienionaKlasa.equals("")) {
+                        System.out.println("   ---------- Bez zmiany");
+                    } else {
+                        Nauczyciel nauczycielDoZmiany = nauczycieleSzkoly.get(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        Nauczyciel zmienionyNauczyciel = nauczycielDoZmiany.klasaDoZmianyOdszedl(zmienionaKlasa);
+                        nauczycieleSzkoly.remove(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        nauczycieleSzkoly.add(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex(), zmienionyNauczyciel);
+                        zmienionyNauczyciel = nauczycielDoZmiany.klasaDoZmianyPrzybyl(zmienionaKlasa, nauczycieleSzkoly.size());
+                        nauczycieleSzkoly.add(zmienionyNauczyciel);
+                        DziennikiKlasowe dziennikiKlasoweDoZmiany = dziennikiKlasowe;
+                        DziennikiKlasowe zmienionyDziennikKlasowy = dziennikiKlasoweDoZmiany.dziennikiKlasoweDoZmiany(nauczycieleSzkoly, dziennikKlasowy);
+                        dziennikKlasowy = zmienionyDziennikKlasowy.getDziennikiKlasowe();
+                        dziennikiKlasowe = zmienionyDziennikKlasowy;
+                    }
+
+                    System.out.print("Przedmiot: " + dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getPrzedmiotNauczania() + "    ?");
+                    zmienionyPrzedmiot = sc.nextLine();
+                    if (zmienionyPrzedmiot.equals("")) {
+                        System.out.println("   ---------- Bez zmiany");
+                    } else {
+                        Nauczyciel nauczycielDoZmiany = nauczycieleSzkoly.get(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        Nauczyciel zmienionyNauczyciel = nauczycielDoZmiany.przedmiotDoZmianyOdszedl(zmienionaKlasa);
+                        nauczycieleSzkoly.remove(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex());
+                        nauczycieleSzkoly.add(dziennikKlasowy.get(j).getNauczycieleKlasy().get(k).getIndex(), zmienionyNauczyciel);
+                        zmienionyNauczyciel = nauczycielDoZmiany.przedmiotDoZmianyPrzybyl(zmienionaKlasa, nauczycieleSzkoly.size());
+                        nauczycieleSzkoly.add(zmienionyNauczyciel);
+                        DziennikiKlasowe dziennikiKlasoweDoZmiany = dziennikiKlasowe;
+                        DziennikiKlasowe zmienionyDziennikKlasowy = dziennikiKlasoweDoZmiany.dziennikiKlasoweDoZmiany(nauczycieleSzkoly, dziennikKlasowy);
+                        dziennikKlasowy = zmienionyDziennikKlasowy.getDziennikiKlasowe();
+                        dziennikiKlasowe = zmienionyDziennikKlasowy;
+                    }
+                }
+
+            }
+            System.out.println("ZMIANY WYKONANE");
+        }
     }
 }

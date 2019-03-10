@@ -1,19 +1,23 @@
 import java.util.ArrayList;
 
 public class DziennikKlasowy extends Klasa {
-    private ArrayList<OcenyPrzedmiotu> ocenyPrzedmiotu;
+    private ArrayList<OcenyUcznia> ocenyUcznia;
 
-    public DziennikKlasowy(String nazwaKlasy, ArrayList<Uczen> uczniowie, ArrayList<NauczycielPrzedmiotu> nauczyciele, ArrayList<OcenyPrzedmiotu> ocenyPrzedmiotu) {
-        super(nazwaKlasy, uczniowie, nauczyciele);
-        this.ocenyPrzedmiotu = ocenyPrzedmiotu;
+    public DziennikKlasowy(int index, String nazwaKlasy, ArrayList<Uczen> uczniowie, ArrayList<Nauczyciel> nauczycieleKlasy, ArrayList<OcenyUcznia> ocenyUcznia) {
+        super(index, nazwaKlasy, uczniowie, nauczycieleKlasy);
+        this.ocenyUcznia = ocenyUcznia;
     }
 
-    public ArrayList<OcenyPrzedmiotu> getOcenyPrzedmiotu() {
-        return ocenyPrzedmiotu;
+    public ArrayList<OcenyUcznia> getOcenyUcznia() {
+        return ocenyUcznia;
     }
 
-    public void setOcenyPrzedmiotu(ArrayList<OcenyPrzedmiotu> ocenyPrzedmiotu) {
-        this.ocenyPrzedmiotu = ocenyPrzedmiotu;
+    public void setOcenyUcznia(ArrayList<OcenyUcznia> ocenyUcznia) {
+        this.ocenyUcznia = ocenyUcznia;
     }
+
+
+
+
 }
 
