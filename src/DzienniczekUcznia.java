@@ -3,35 +3,23 @@ import java.util.ArrayList;
 public class DzienniczekUcznia {
     private Uczen uczen;
     private ArrayList<Nauczyciel> nauczycielePrzedmiotow;
-    private ArrayList ocenyPrzedmiotow;
+    private ArrayList<OcenyPrzedmiotuUcznia> ocenyUcznia;
 
-    public DzienniczekUcznia(Uczen uczen, ArrayList<Nauczyciel> nauczycielePrzedmiotow, ArrayList ocenyPrzedmiotow) {
+    public DzienniczekUcznia(Uczen uczen, ArrayList<Nauczyciel> nauczycielePrzedmiotow, ArrayList<OcenyPrzedmiotuUcznia> ocenyUcznia) {
         this.uczen = uczen;
         this.nauczycielePrzedmiotow = nauczycielePrzedmiotow;
-        this.ocenyPrzedmiotow = ocenyPrzedmiotow;
+        this.ocenyUcznia = ocenyUcznia;
     }
 
     public Uczen getUczen() {
         return uczen;
     }
 
-    public void setUczen(Uczen uczen) {
-        this.uczen = uczen;
-    }
-
     public ArrayList<Nauczyciel> getNauczycielePrzedmiotow() {
         return nauczycielePrzedmiotow;
     }
 
-    public void setNauczycielePrzedmiotow(ArrayList<Nauczyciel> nauczycielePrzedmiotow) {
-        this.nauczycielePrzedmiotow = nauczycielePrzedmiotow;
-    }
-
-    public ArrayList getOcenyPrzedmiotow() {
-        return ocenyPrzedmiotow;
-    }
-
-    public void setOcenyPrzedmiotow(ArrayList ocenyPrzedmiotow) {
-        this.ocenyPrzedmiotow = ocenyPrzedmiotow;
+    public ArrayList getOcenyUcznia() {
+        return ocenyUcznia;
     }
 }

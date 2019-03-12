@@ -1,5 +1,5 @@
-public class DyrektorSzkoly extends Osoba{
-    public DyrektorSzkoly (String imie, String nazwisko) {
+public class DyrektorSzkoly extends Osoba {
+    public DyrektorSzkoly(String imie, String nazwisko) {
         super(imie, nazwisko);
     }
 }

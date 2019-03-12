@@ -12,13 +12,8 @@ public class Obliczenia {
         this.wszystkieDzienniki = wszystkieDzienniki;
     }
 
-    public void setWszystkieDzienniki(ArrayList<DziennikKlasowy> wszystkieDzienniki) {
-        this.wszystkieDzienniki = wszystkieDzienniki;
-    }
-
     public int getIloscKlasSzkole() {
-        iloscKlasSzkole = wszystkieDzienniki.size();
-        return iloscKlasSzkole;
+        return wszystkieDzienniki.size();
     }
 
     public int getIloscUczniowSzkole() {
