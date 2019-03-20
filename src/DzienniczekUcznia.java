@@ -3,9 +3,9 @@ import java.util.ArrayList;
 public class DzienniczekUcznia {
     private Uczen uczen;
     private ArrayList<Nauczyciel> nauczycielePrzedmiotow;
-    private ArrayList<OcenyPrzedmiotuUcznia> ocenyUcznia;
+    private ArrayList<OcenyZZajeciaUcznia> ocenyUcznia;
 
-    public DzienniczekUcznia(Uczen uczen, ArrayList<Nauczyciel> nauczycielePrzedmiotow, ArrayList<OcenyPrzedmiotuUcznia> ocenyUcznia) {
+    public DzienniczekUcznia(Uczen uczen, ArrayList<Nauczyciel> nauczycielePrzedmiotow, ArrayList<OcenyZZajeciaUcznia> ocenyUcznia) {
         this.uczen = uczen;
         this.nauczycielePrzedmiotow = nauczycielePrzedmiotow;
         this.ocenyUcznia = ocenyUcznia;
