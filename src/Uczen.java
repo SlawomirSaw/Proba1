@@ -1,13 +1,13 @@
 public class Uczen extends Osoba {
-    int index;
+    int idUcznia;
 
-    public Uczen(int index, String imie, String nazwisko) {
+    public Uczen(int idUcznia, String imie, String nazwisko) {
         super(imie, nazwisko);
-        this.index = index;
+        this.idUcznia = idUcznia;
     }
 
-    public int getIndex() {
-        return index;
+    public int getidUcznia() {
+        return idUcznia;
     }
 
     public Uczen() {

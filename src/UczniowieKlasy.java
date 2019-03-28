@@ -1,22 +1,22 @@
 import java.util.ArrayList;
 
 public class UczniowieKlasy {
-    private int indexKlasy;
-    private ArrayList<Integer> indexyUczniowKlasy;
+    private int idKlasy;
+    private ArrayList<Integer> idUczniowKlasy;
 
-    public UczniowieKlasy(int indexKlasy, ArrayList<Integer> indexyUczniowKlasy) {
-        this.indexKlasy = indexKlasy;
-        this.indexyUczniowKlasy = indexyUczniowKlasy;
+    public UczniowieKlasy(int idKlasy, ArrayList<Integer> idUczniowKlasy) {
+        this.idKlasy = idKlasy;
+        this.idUczniowKlasy = idUczniowKlasy;
     }
 
     public UczniowieKlasy() {
     }
 
-    public int getIndexKlasy() {
-        return indexKlasy;
+    public int getIdKlasy() {
+        return idKlasy;
     }
 
-    public ArrayList<Integer> getIndexyUczniowKlasy() {
-        return indexyUczniowKlasy;
+    public ArrayList<Integer> getIdUczniowKlasy() {
+        return idUczniowKlasy;
     }
 }

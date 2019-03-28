@@ -1,23 +1,32 @@
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 public class Zajecie {
-    private String nazwaZajecia;
-    private String imieNauczyciela;
-    private String nazwiskoNauczyciela;
+    private int idZajecie;
+    private int idPrzedmiotNauczania;
+    private int idNauczyciela;
+    private LocalDateTime dataIGodzinaRozpoczecia;
 
-    public Zajecie(String nazwaZajecia, String imieNauczyciela, String nazwiskoNauczyciela) {
-        this.nazwaZajecia = nazwaZajecia;
-        this.imieNauczyciela = imieNauczyciela;
-        this.nazwiskoNauczyciela = nazwiskoNauczyciela;
+    public Zajecie(int idZajecie, int idPrzedmiotNauczania, int idNauczyciela, LocalDateTime dataIGodzinaRozpoczecia) {
+        this.idZajecie = idZajecie;
+        this.idPrzedmiotNauczania = idPrzedmiotNauczania;
+        this.idNauczyciela = idNauczyciela;
+        this.dataIGodzinaRozpoczecia = dataIGodzinaRozpoczecia;
     }
 
-    public String getNazwaZajecia() {
-        return nazwaZajecia;
+    public int getIdZajecie() {
+        return idZajecie;
     }
 
-    public String getImieNauczyciela() {
-        return imieNauczyciela;
+    public int getIdPrzedmiotNauczania() {
+        return idPrzedmiotNauczania;
     }
 
-    public String getNazwiskoNauczyciela() {
-        return nazwiskoNauczyciela;
+    public int getIdNauczyciela() {
+        return idNauczyciela;
+    }
+
+    public LocalDateTime getDataIGodzinaRozpoczecia() {
+        return dataIGodzinaRozpoczecia;
     }
 }
