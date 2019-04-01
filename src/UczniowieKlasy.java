@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class UczniowieKlasy {
+public class UczniowieKlasy implements Serializable {
     private int idKlasy;
     private ArrayList<Integer> idUczniowKlasy;
 

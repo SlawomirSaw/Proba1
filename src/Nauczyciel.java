@@ -1,4 +1,6 @@
-public class Nauczyciel extends Osoba {
+import java.io.Serializable;
+
+public class Nauczyciel extends Osoba implements Serializable {
     private int idNauczyciela;
 
     public Nauczyciel(int idNauczyciela, String imie, String nazwisko) {

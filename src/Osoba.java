@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.Scanner;
 
-public class Osoba {
+public class Osoba implements Serializable {
     private String imie;
     private String nazwisko;
 

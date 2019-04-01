@@ -1,4 +1,6 @@
-public class PrzedmiotNauczania {
+import java.io.Serializable;
+
+public class PrzedmiotNauczania implements Serializable {
     private int idPrzedmiotNauczania;
     private String przedmiotNauczania;
 
