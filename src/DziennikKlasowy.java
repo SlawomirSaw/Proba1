@@ -4,9 +4,9 @@ public class DziennikKlasowy {
     private String nazwaKlasy;
     private ArrayList<Uczen> uczniowie;
     private ArrayList<Nauczyciel> nauczycieleKlasy;
-    private ArrayList<ArrayList<OcenyZZajeciaUcznia>> ocenyUczniow;
+    private ArrayList<ArrayList<OcenaZZajeciaUcznia>> ocenyUczniow;
 
-    public DziennikKlasowy(String nazwaKlasy, ArrayList<Uczen> uczniowie, ArrayList<Nauczyciel> nauczycieleKlasy, ArrayList<ArrayList<OcenyZZajeciaUcznia>> ocenyUczniow) {
+    public DziennikKlasowy(String nazwaKlasy, ArrayList<Uczen> uczniowie, ArrayList<Nauczyciel> nauczycieleKlasy, ArrayList<ArrayList<OcenaZZajeciaUcznia>> ocenyUczniow) {
         //this.index = index;
         this.nazwaKlasy = nazwaKlasy;
         this.uczniowie = uczniowie;
@@ -26,7 +26,7 @@ public class DziennikKlasowy {
         return nauczycieleKlasy;
     }
 
-    public ArrayList<ArrayList<OcenyZZajeciaUcznia>> getOcenyUczniow() {
+    public ArrayList<ArrayList<OcenaZZajeciaUcznia>> getOcenyUczniow() {
         return ocenyUczniow;
     }
 }

@@ -16,4 +16,7 @@ public class PrzedmiotNauczania implements Serializable {
     public String getPrzedmiotNauczania() {
         return przedmiotNauczania;
     }
+
+    //public PrzedmiotNauczania() {
+    //}
 }
