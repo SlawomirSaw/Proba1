@@ -1,14 +1,12 @@
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Scanner;
+import java.util.*;
 
 public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serializable {
     private static DyrektorSzkoly dyrektorSzkoly = new DyrektorSzkoly("", "");
@@ -21,6 +19,8 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static int iloscZajecWSzkole = 0;
     private static int widthScreen = Toolkit.getDefaultToolkit().getScreenSize().width;
     private static int heightScreen = Toolkit.getDefaultToolkit().getScreenSize().height;
+    private static int selectedColumn = 0;
+    private static int selectedRow = 0;
     private static ArrayList<Uczen> uczniowieSzkoly = new ArrayList<>();
     private static ArrayList<Klasa> klasy = new ArrayList<>();
     private static ArrayList<UczniowieKlasy> uczniowieSzkolyWgKlas = new ArrayList<>();
@@ -43,9 +43,9 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static JScrollPane scrolPanelMain;
     private static JPanel panelMain;
     private static JPanel panel0 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    private static JPanel panelMenuA = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    private static JPanel panelMenuB = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    private static JPanel panelMenuC = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    private static JPanel panelKlasy = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    private static JPanel panelPrzedmioty = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    private static JPanel panelNauczyciele = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panel1 = new JPanel();
     private static JPanel panel2 = new JPanel();
     private static JPanel panel3 = new JPanel();
@@ -555,14 +555,52 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
     private static ArrayList<Zajecie> listaZajecPrzedmiotu(String nazwaPrzedmiotu) {
         ArrayList<Zajecie> listaZajecPrzedmiotu = new ArrayList<Zajecie>();
-        for (int l = 0; l < nauczyciele.size(); l++) {
-            for (Zajecie z : zajecia) {
-                if (podajIdPrzedmiotu(nazwaPrzedmiotu) == z.getIdPrzedmiotNauczania() && nauczyciele.get(l).getIdNauczyciela() == z.getIdNauczyciela()) {
-                    listaZajecPrzedmiotu.add(z);
-                }
+        for (Zajecie z : zajecia) {
+            if (podajIdPrzedmiotu(nazwaPrzedmiotu) == z.getIdPrzedmiotNauczania()) {
+                listaZajecPrzedmiotu.add(z);
             }
         }
         return listaZajecPrzedmiotu;
+    }
+
+    private static ArrayList<String> listaNazwPrzedmiotowNauczycielaId(int idNauczyciela) {
+        ArrayList<String> listaNazwPrzedmiotowNauczyciela = new ArrayList<String>();
+        for (Zajecie z : zajecia) {
+            if (z.getIdNauczyciela() == idNauczyciela) {
+                if (!listaNazwPrzedmiotowNauczyciela.contains(przedmiotyNauczania.get(z.getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania())) {
+                    listaNazwPrzedmiotowNauczyciela.add(przedmiotyNauczania.get(z.getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania());
+                }
+            }
+        }
+        listaNazwPrzedmiotowNauczyciela.sort(null);
+        return listaNazwPrzedmiotowNauczyciela;
+    }
+
+    private static ArrayList<Nauczyciel> listaNauczycieliPrzedmiotuId(int idPrzedmiotu) {
+        ArrayList<Nauczyciel> listaNauczycieliPrzedmiotu = new ArrayList<Nauczyciel>();
+        ArrayList<String> listaNazwNauczycieliPrzedmiotu = new ArrayList<String>();
+        ArrayList<Integer> listaIdNauczycieliPrzedmiotu = new ArrayList<Integer>();
+        for (Zajecie z : zajecia) {
+            if (z.getIdPrzedmiotNauczania() == idPrzedmiotu) {
+                if (!listaIdNauczycieliPrzedmiotu.contains(z.getIdNauczyciela())) {
+                    listaIdNauczycieliPrzedmiotu.add(z.getIdNauczyciela());
+                    listaNauczycieliPrzedmiotu.add(new Nauczyciel(z.getIdNauczyciela(), nauczyciele.get(z.getIdNauczyciela() - 1).getImie(), nauczyciele.get(z.getIdNauczyciela() - 1).getNazwisko()));
+                }
+            }
+        }
+        return listaNauczycieliPrzedmiotu;
+    }
+
+    private static ArrayList<String> listaNazwKlasIdPrzedmiotuNauczyciela(int idPrzedmiot, int idNauczyciel) {
+        ArrayList<String> listaNazwKlasIdPrzedmiotuNauczyciela = new ArrayList<String>();
+        for (Zajecie z : zajecia) {
+            if (z.getIdPrzedmiotNauczania() == idPrzedmiot && z.getIdNauczyciela() == idNauczyciel) {
+                if (!listaNazwKlasIdPrzedmiotuNauczyciela.contains(klasy.get(z.getIdKlasa() - 1).getNazwaKlasy())) {
+                    listaNazwKlasIdPrzedmiotuNauczyciela.add(klasy.get(z.getIdKlasa() - 1).getNazwaKlasy());
+                }
+            }
+        }
+        return listaNazwKlasIdPrzedmiotuNauczyciela;
     }
 
     private static ArrayList<Zajecie> listaZajecNauczyciela(String imieINazwiskoNauczyciela) {
@@ -592,13 +630,53 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         Float sumaOcen = 0f;
         int liczbaOcen = 0;
         for (OcenaUcznia o : ocenyUczniow) {
-            if (o.getIdZajecia() == idZajecia && o.getOcenaZZajeciaUcznia() > 0) {
+            if (o.getIdZajecia() == idZajecia) {
                 sumaOcen = sumaOcen + o.getOcenaZZajeciaUcznia();
                 liczbaOcen++;
-                sredniaOcenKlasyZZajec = sumaOcen / liczbaOcen;
             }
         }
+        if (liczbaOcen > 0) {
+            sredniaOcenKlasyZZajec = sumaOcen / liczbaOcen;
+        }
         return sredniaOcenKlasyZZajec;
+    }
+
+    private static Float sredniaOcenKlasy(String nazwaKlasy) {
+        Float sredniaOcenKlasy = 0f;
+        Float sumaOcenKlasy = 0f;
+        int liczbaOcen = 0;
+        for (Uczen u : listaUczniKlasy(nazwaKlasy)) {
+            for (Zajecie z : listaZajecKlasy(nazwaKlasy)) {
+                for (int ocena : listaOcenUczniaZZajec(u.getidUcznia(), z.getIdZajecie())) {
+                    sumaOcenKlasy = sumaOcenKlasy + ocena;
+                    liczbaOcen++;
+                }
+            }
+        }
+        if (liczbaOcen > 0) {
+            sredniaOcenKlasy = sumaOcenKlasy / liczbaOcen;
+        }
+        return sredniaOcenKlasy;
+    }
+
+    private static Float sredniaOcenNauczycielazPrzedmiotu(int idNauczyciela, int idPrzedmiotu) {
+        Float sredniaOcenNauczycielazPrzedmiotu = 0f;
+        Float sumaOcen = 0f;
+        int liczbaOcen = 0;
+        for (Zajecie z : zajecia) {
+            if (z.getIdNauczyciela() == idNauczyciela && z.getIdPrzedmiotNauczania() == idPrzedmiotu) {
+                for (OcenaUcznia o : ocenyUczniow) {
+                    if (o.getIdZajecia() == z.getIdZajecie()) {
+                        sumaOcen = sumaOcen + o.getOcenaZZajeciaUcznia();
+                        liczbaOcen++;
+                    }
+                }
+            }
+        }
+        if (liczbaOcen > 0) {
+            sredniaOcenNauczycielazPrzedmiotu = sumaOcen / liczbaOcen;
+        }
+        return sredniaOcenNauczycielazPrzedmiotu;
     }
 
     private static String dodaj(String nazwa) {
@@ -840,23 +918,12 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         int heightScreen = Toolkit.getDefaultToolkit().getScreenSize().height;
         mainFrame = new JFrame(NAZWA_SZKOLY);
         setDefaultLookAndFeelDecorated(true);
-        //mainFrame.setUndecorated(true);
-        //mainFrame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         mainFrame.setBounds(0, 0, widthScreen, heightScreen);
         panelMain = new JPanel(new FlowLayout(FlowLayout.LEFT));
         scrolPanelMain = new JScrollPane();
         scrolPanelMain.setViewportView(panelMain);
         panelMain.setBackground(Color.BLUE);
-        //panelMain.setSize(10000, 10000);
-        //panelMain.add(ButtonActPerfor("Nr1"));
-        //panelMain.add(ComboBoxActPerfor());
-        //mainFrame.getContentPane().add(panelMain);
-        mainFrame.setJMenuBar(createMenuBar());
-        //tabbedPanel.add(tabbed1, createPanel1());
-        //tabbedPanel.add(tabbed2, createPanel2());
-        //tabbedPanel.add(tabbed3, createPanel3());
-        //tabbedPanel.add(tabbed4, createPanel4());
-        //mainFrame.add(tabbedPanel);
+        mainFrame.setJMenuBar(createMenuGlowne());
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //mainFrame.pack();
         mainFrame.setVisible(true);
@@ -933,7 +1000,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     }
 
     private static PrzedmiotNauczania wybierzNowyPrzedmiotZajeciaNauczycielaId(int idNauczyciel) {
-        PrzedmiotNauczania nowyPrzedmiotZajecia = new PrzedmiotNauczania(0,"");
+        PrzedmiotNauczania nowyPrzedmiotZajecia = new PrzedmiotNauczania(0, "");
         ArrayList<String> nazwyPrzedmiotów = new ArrayList<String>();
         for (PrzedmiotNauczania p : przedmiotyNauczania) {
             nazwyPrzedmiotów.add(p.getPrzedmiotNauczania());
@@ -955,6 +1022,52 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return nowyPrzedmiotZajecia;
     }
 
+    private static PrzedmiotNauczania wybierzNowyPrzedmiot() {
+        PrzedmiotNauczania nowyPrzedmiot = new PrzedmiotNauczania(0, "");
+        ArrayList<String> nazwyDostepnychPrzedmiotow = new ArrayList<String>();
+        ArrayList<String> nazwyDostepnychPrzedmiotowDoWyboru = new ArrayList<String>();
+        for (PrzedmiotNauczania pn : przedmiotyNauczania) {
+            nazwyDostepnychPrzedmiotow.add(pn.getPrzedmiotNauczania());
+        }
+        for (String NP : NAZWY_PRZEDMIOTOW) {
+            if (!nazwyDostepnychPrzedmiotow.contains(NP)) {
+                nazwyDostepnychPrzedmiotowDoWyboru.add(NP);
+            }
+
+        }
+        nazwyDostepnychPrzedmiotowDoWyboru.sort(null);
+        if (nazwyDostepnychPrzedmiotowDoWyboru.size() > 0) {
+            JOptionPane inputNowyPrzedmiot = new JOptionPane();
+            inputNowyPrzedmiot.setWantsInput(true);
+            String[] possibleValues = new String[nazwyDostepnychPrzedmiotowDoWyboru.size()];
+            for (int i = 0; i < nazwyDostepnychPrzedmiotowDoWyboru.size(); i++) {
+                possibleValues[i] = nazwyDostepnychPrzedmiotowDoWyboru.get(i);
+            }
+            Object selectedSubject = JOptionPane.showInputDialog(null,
+                    "Wybierz dostępny wolny przedmiot nauczania ", "Lista przedmiotów nauczania",
+                    JOptionPane.INFORMATION_MESSAGE, null,
+                    possibleValues, null);
+            if (selectedSubject != null) {
+                nowyPrzedmiot = new PrzedmiotNauczania(przedmiotyNauczania.size() + 1, selectedSubject.toString());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Brak przedmiotów do wyboru - wszystkie juz są wybrane", "Uwaga!", JOptionPane.ERROR_MESSAGE);
+        }
+        return nowyPrzedmiot;
+    }
+
+    private static Nauczyciel dodajNowegoNauczyciela() {
+        Nauczyciel nowyNauczyciel = new Nauczyciel();
+        String imieNauczyciela = JOptionPane.showInputDialog("Wprowadź imię nauczyciela");
+        if (imieNauczyciela != null) {
+            String nazwiskoNauczyciela = JOptionPane.showInputDialog("Wprowadź nazwisko nauczyciela");
+            if (nazwiskoNauczyciela != null) {
+                nowyNauczyciel = new Nauczyciel(nauczyciele.size() + 1, imieNauczyciela, nazwiskoNauczyciela);
+            }
+        }
+        return nowyNauczyciel;
+    }
+
     private static JComboBox ComboBoxActPerfor() {
         JComboBox box1 = new JComboBox();
         box1.addItem("pos.1");
@@ -968,7 +1081,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return box1;
     }
 
-    private static JMenuBar createMenuBar() {
+    private static JMenuBar createMenuGlowne() {
         LinkedHashMap<String, String[]> rows1 = new LinkedHashMap<>();
         LinkedHashMap<String, String[]> rowsMain = new LinkedHashMap<>();
         String menuA = "KLASY";
@@ -1002,32 +1115,34 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         String F3 = "F3";
         String F4 = "F4";
         //rowsMain.put(menuA, new String[]{A1, A2, A3, A4});
-        String menuANazwyTab[] = new String[klasy.size()];
-        String manuBNazwyTab[] = new String[przedmiotyNauczania.size()];
-        String manuCNazwyTab[] = new String[nauczyciele.size()];
+        String menuANazwyTab[] = new String[klasy.size() + 1];
+        String menuBNazwyTab[] = new String[przedmiotyNauczania.size() + 1];
+        String menuCNazwyTab[] = new String[nauczyciele.size() + 1];
         for (Klasa klasa : klasy) {
             menuANazwyTab[klasy.indexOf(klasa)] = "Klasa nr " + klasa.getNazwaKlasy();
         }
+        menuANazwyTab[menuANazwyTab.length - 1] = "Spis ";
         ArrayList<String> nazwyPrzedmiotow = new ArrayList<String>();
         for (PrzedmiotNauczania przedmiotNauczania : przedmiotyNauczania) {
             nazwyPrzedmiotow.add(przedmiotNauczania.getPrzedmiotNauczania());
         }
         nazwyPrzedmiotow.sort(null);
         for (int i = 0; i < nazwyPrzedmiotow.size(); i++) {
-            manuBNazwyTab[i] = nazwyPrzedmiotow.get(i);
+            menuBNazwyTab[i] = nazwyPrzedmiotow.get(i);
         }
+        menuBNazwyTab[menuBNazwyTab.length - 1] = "Spis ";
         ArrayList<String> nazwyNauczycieli = new ArrayList<String>();
         for (Nauczyciel nauczyciel : nauczyciele) {
             nazwyNauczycieli.add(nauczyciel.getImie() + " " + nauczyciel.getNazwisko());
         }
         nazwyNauczycieli.sort(null);
         for (int i = 0; i < nazwyNauczycieli.size(); i++) {
-            manuCNazwyTab[i] = nazwyNauczycieli.get(i);
+            menuCNazwyTab[i] = nazwyNauczycieli.get(i);
         }
-
+        menuCNazwyTab[menuCNazwyTab.length - 1] = "Spis ";
         rowsMain.put(menuA, menuANazwyTab);
-        rowsMain.put(menuB, manuBNazwyTab);
-        rowsMain.put(menuC, manuCNazwyTab);
+        rowsMain.put(menuB, menuBNazwyTab);
+        rowsMain.put(menuC, menuCNazwyTab);
         rowsMain.put(menuD, new String[]{D1, D2, D3, D4});
         rowsMain.put(menuE, new String[]{E1, E2, E3, E4});
         rowsMain.put(menuF, new String[]{F1, F2, F3, F4});
@@ -1061,15 +1176,15 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             panelMain.removeAll();
-                            headTable2 = new JLabel("");
+                            //headTable2 = new JLabel("");
                             if (m.equals(menuA)) {
-                                scrolPanelMain.setViewportView(createPanelMenuA(m1.replaceAll("Klasa nr ", "")));
+                                scrolPanelMain.setViewportView(createPanelKlasy(m1.replaceAll("Klasa nr ", "")));
                             }
                             if (m.equals(menuB)) {
-                                scrolPanelMain.setViewportView(createPanelMenuB(m1));
+                                scrolPanelMain.setViewportView(createPanelPrzedmioty(m1));
                             }
                             if (m.equals(menuC)) {
-                                scrolPanelMain.setViewportView(createPanelMenuC(m1));
+                                scrolPanelMain.setViewportView(createPanelNauczyciele(m1));
                             }
 
                             if (!m.equals(menuA) && !m.equals(menuB) && !m.equals(menuC)) {
@@ -1089,218 +1204,517 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return menuBar;
     }
 
-    private static JPanel createPanelMenuA(String nazwaKlasy) {
-        panelMenuA.removeAll();
-        String[] columnNames = new String[3 + listaNazwZajecKlasy(nazwaKlasy).size()];
-        columnNames[0] = "ID ucznia";
-        columnNames[1] = "Imię ucznia";
-        columnNames[2] = "Nazwisko ucznia";
-        for (int j = 0; j < listaNazwZajecKlasy(nazwaKlasy).size(); j++) {
-            columnNames[3 + j] = listaNazwZajecKlasy(nazwaKlasy).get(j) + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getNazwisko();
-        }
-        table1 = new JTable(new Object[listaUczniKlasy(nazwaKlasy).size() + 1][3 + listaZajecKlasy(nazwaKlasy).size()], columnNames);
-        for (int lo = 0; lo <= listaUczniKlasy(nazwaKlasy).size() - 1; lo++) {
-            table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getidUcznia(), lo, 0);
-            table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getImie(), lo, 1);
-            table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getNazwisko(), lo, 2);
-            for (int k = 0; k < listaZajecKlasy(nazwaKlasy).size(); k++) {
-                table1.setValueAt(listaOcenUczniaZZajec(listaUczniKlasy(nazwaKlasy).get(lo).getidUcznia(), listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()), lo, 3 + k);
-                if (sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()) > 0) {
-                    table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()), listaUczniKlasy(nazwaKlasy).size(), 3 + k);
-                }
-            }
-            table1.setValueAt("średnia ocen:", uczniowieSzkolyWgKlas.get(podajIdKlasy(nazwaKlasy) - 1).getIdUczniowKlasy().size(), 2);
-        }
-        table1.setAutoCreateRowSorter(false);
-        JLabel headTable1 = new JLabel("KLASA nr " + nazwaKlasy + " - spis ocen");
-        headTable1.setFont(new Font(null, Font.BOLD, 14));
-        headTable1.setAlignmentX(CENTER_ALIGNMENT);
-        Box boxMain = new Box(BoxLayout.Y_AXIS);
-        boxMain.setPreferredSize(new Dimension((3 + listaZajecKlasy(nazwaKlasy).size()) * 180, (table1.getRowCount() + 6) * table1.getRowHeight()));
-        boxMain.add(headTable1);
-        boxMain.add(table1.getTableHeader());
-        boxMain.add(table1);
-        boxMain.add(Box.createGlue());
-        boxMain.add(box2);
-        JScrollPane scrollBox = new JScrollPane(boxMain);
-        panelMenuA.add(scrollBox);
-        panelMenuA.setSize(widthScreen, heightScreen);
-        panelMenuA.setBackground(Color.BLUE);
-        box2 = new Box(BoxLayout.X_AXIS);
-        box3 = new Box(BoxLayout.Y_AXIS);
-        table1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
+    private static JPanel createPanelKlasy(String nazwaKlasy) {
+        panelKlasy.removeAll();
+        if (!nazwaKlasy.equals("Spis ")) {
 
-                if (table1.getSelectedRow() >= 0 && table1.getSelectedRow() < listaUczniKlasy(nazwaKlasy).size() && table1.getSelectedColumn() > 2 && table1.getSelectedColumn() < listaZajecKlasy(nazwaKlasy).size() + 3) {
-                    int idWybranyUczen = listaUczniKlasy(nazwaKlasy).get(table1.getSelectedRow()).getidUcznia();
-                    int idWybraneZajecie = listaZajecKlasy(nazwaKlasy).get(table1.getSelectedColumn() - 3).getIdZajecie();
-                    String imieWybranyUczen = listaUczniKlasy(nazwaKlasy).get(table1.getSelectedRow()).getImie();
-                    String nazwiskoWybranyUczen = listaUczniKlasy(nazwaKlasy).get(table1.getSelectedRow()).getNazwisko();
-                    String nazwaWybraneZajecie = listaNazwZajecKlasy(nazwaKlasy).get(table1.getSelectedColumn() - 3);
-                    headTable2 = new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen);
-                    box2 = new Box(BoxLayout.X_AXIS);
-                    box3 = new Box(BoxLayout.Y_AXIS);
-                    box3.add(headTable2);
-                    String namePupilSubject = idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen + " - " + nazwaWybraneZajecie + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko();
-                    headTable2 = new JLabel(nazwaWybraneZajecie + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko());
-                    box3.add(headTable2);
-                    headTable2 = new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie));
-                    box3.add(headTable2);
-                    //box1.add(new JTextField(1));
-                    box2.add(box3);
-                    box2.add(Box.createGlue());
-                    JButton buttonNewGrade = new JButton("Dodaj ocenę");
-                    box2.add(buttonNewGrade);
-                    buttonNewGrade.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            int newGrade = newGradeFor(namePupilSubject);
-                            if (newGrade != -1) {
-                                ocenyUczniow.add(new OcenaUcznia(idWybranyUczen, idWybraneZajecie, newGrade, LocalDateTime.now()));
-                                zapiszDoPlikuOcenyUczniow();
-                                createPanelMenuA(nazwaKlasy);
-                            }
+            String[] columnNames = new String[3 + listaNazwZajecKlasy(nazwaKlasy).size()];
+            columnNames[0] = "ID ucznia";
+            columnNames[1] = "Imię ucznia";
+            columnNames[2] = "Nazwisko ucznia";
+            for (int j = 0; j < listaNazwZajecKlasy(nazwaKlasy).size(); j++) {
+                columnNames[3 + j] = listaNazwZajecKlasy(nazwaKlasy).get(j) + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getNazwisko();
+            }
+            table1 = new JTable(new Object[listaUczniKlasy(nazwaKlasy).size() + 1][3 + listaZajecKlasy(nazwaKlasy).size()], columnNames);
+            for (int lo = 0; lo <= listaUczniKlasy(nazwaKlasy).size() - 1; lo++) {
+                table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getidUcznia(), lo, 0);
+                table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getImie(), lo, 1);
+                table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getNazwisko(), lo, 2);
+                for (int k = 0; k < listaZajecKlasy(nazwaKlasy).size(); k++) {
+                    table1.setValueAt(listaOcenUczniaZZajec(listaUczniKlasy(nazwaKlasy).get(lo).getidUcznia(), listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()), lo, 3 + k);
+                    if (sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()) > 0) {
+                        table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()), listaUczniKlasy(nazwaKlasy).size(), 3 + k);
+                    }
+                }
+                table1.setValueAt("średnia ocen:", uczniowieSzkolyWgKlas.get(podajIdKlasy(nazwaKlasy) - 1).getIdUczniowKlasy().size(), 2);
+            }
+            table1.setAutoCreateRowSorter(false);
+            //table1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            table1.getColumn(columnNames[0]).setPreferredWidth(1);
+            table1.getColumn(columnNames[1]).setPreferredWidth(1);
+            table1.getColumn(columnNames[2]).setPreferredWidth(1);
+            //table1.setSelectionBackground(Color.RED);
+
+            JTable table3 = new JTable(new TableModel() {
+                @Override
+                public int getRowCount() {
+                    return listaUczniKlasy(nazwaKlasy).size() + 1;
+                }
+
+                @Override
+                public int getColumnCount() {
+                    return 3 + listaNazwZajecKlasy(nazwaKlasy).size();
+                }
+
+                @Override
+                public String getColumnName(int columnIndex) {
+                    String[] columnNames = new String[3 + listaNazwZajecKlasy(nazwaKlasy).size()];
+                    columnNames[0] = "ID ucznia";
+                    columnNames[1] = "Imię ucznia";
+                    columnNames[2] = "Nazwisko ucznia";
+                    for (int j = 0; j < listaNazwZajecKlasy(nazwaKlasy).size(); j++) {
+                        columnNames[3 + j] = listaNazwZajecKlasy(nazwaKlasy).get(j) + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getNazwisko();
+                    }
+                    return columnNames[columnIndex];
+                }
+
+                @Override
+                public Class<?> getColumnClass(int columnIndex) {
+                    return getClass();
+                }
+
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return false;
+                }
+
+                @Override
+                public Object getValueAt(int rowIndex, int columnIndex) {
+                    Object newValueCell = null;
+                    if (rowIndex < getRowCount() - 1) {
+                        if (columnIndex == 0) {
+                            newValueCell = listaUczniKlasy(nazwaKlasy).get(rowIndex).getidUcznia();
                         }
-                    });
+                        if (columnIndex == 1) {
+                            newValueCell = listaUczniKlasy(nazwaKlasy).get(rowIndex).getImie();
+                        }
+                        if (columnIndex == 2) {
+                            newValueCell = listaUczniKlasy(nazwaKlasy).get(rowIndex).getNazwisko();
+                        }
+                        if (columnIndex > 2) {
+                            newValueCell = listaOcenUczniaZZajec(listaUczniKlasy(nazwaKlasy).get(rowIndex).getidUcznia(), listaZajecKlasy(nazwaKlasy).get(columnIndex - 3).getIdZajecie());
+                        }
+                    }
+                    if (rowIndex == getRowCount() - 1 && columnIndex == 2) {
+                        newValueCell = "średnia ocen:";
+                    }
+                    if (rowIndex == getRowCount() - 1 && columnIndex > 2) {
+                        if (sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(columnIndex - 3).getIdZajecie()) > 0) {
+                            newValueCell = sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(columnIndex - 3).getIdZajecie());
+                        }
+                    }
+                    return newValueCell;
+                }
+
+                @Override
+                public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+
+                }
+
+                @Override
+                public void addTableModelListener(TableModelListener l) {
+
+                }
+
+                @Override
+                public void removeTableModelListener(TableModelListener l) {
+
+                }
+            });
+
+
+            for (int i = 0; i < table3.getColumnCount(); i++) {
+                table3.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
+                    @Override
+                    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
+                        JLabel newL = new JLabel();
+                        String rowTemp = "";
+                        if (table3.getValueAt(row, column) != null) {
+                            rowTemp = table3.getValueAt(row, column).toString();
+                        }
+                        if (row == selectedRow && column == selectedColumn) {
+
+
+                            //System.out.println(rowTemp);
+                            //newL.add(table3.getComponentAt(row, column).setFont(new Font(Font.MONOSPACED, Font.BOLD, 16)));
+                            //newL.setText(table3.getComponentAt(row, column).toString());
+                            newL.setText(rowTemp);
+                            newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD,13));
+                            newL.setForeground(Color.RED);
+                            //newL.setBackground(Color.RED);
+                            JPanel newP = new JPanel();
+                            newP.add(newL);
+                            //newP.setBackground(Color.RED);
+                            //createPanelKlasy(nazwaKlasy);
+                            return newL;
+                        } else {
+                            newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN,13));
+                            if (row == table3.getRowCount() - 1) {
+                                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD,13));
+                            }
+                            newL.setText(rowTemp);
+                            return newL;
+                        }
+
+
+                    }
+                });
+            }
+            //}
+            table3.getColumn(columnNames[0]).setPreferredWidth(1);
+            table3.getColumn(columnNames[1]).setPreferredWidth(1);
+            table3.getColumn(columnNames[2]).setPreferredWidth(1);
+            table1 = table3;
+
+            JLabel headTable1 = new JLabel("KLASA nr " + nazwaKlasy + " - spis ocen");
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            boxMain.setPreferredSize(new Dimension((3 + listaZajecKlasy(nazwaKlasy).size()) * 150, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.add(headTable1);
+            boxMain.add(table1.getTableHeader());
+            boxMain.add(table1);
+            boxMain.add(Box.createGlue());
+            boxMain.add(box2);
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            panelKlasy.add(scrollBox);
+            panelKlasy.setSize(widthScreen, heightScreen);
+            panelKlasy.setBackground(Color.BLUE);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+
+            table1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    //table1.setSelectionBackground(Color.red);
+
+                    if (table1.getSelectedRow() >= 0 && table1.getSelectedRow() < listaUczniKlasy(nazwaKlasy).size() && table1.getSelectedColumn() > 2 && table1.getSelectedColumn() < listaZajecKlasy(nazwaKlasy).size() + 3) {
+                        if (table1.getSelectedColumn() > -1 && table1.getSelectedRow() > -1) {
+                            selectedColumn = table1.getSelectedColumn();
+                            selectedRow = table1.getSelectedRow();
+                        }
+                        int idWybranyUczen = listaUczniKlasy(nazwaKlasy).get(table1.getSelectedRow()).getidUcznia();
+                        int idWybraneZajecie = listaZajecKlasy(nazwaKlasy).get(table1.getSelectedColumn() - 3).getIdZajecie();
+                        String imieWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getImie();
+                        String nazwiskoWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getNazwisko();
+                        String nazwaWybranyPrzedmiot = przedmiotyNauczania.get(zajecia.get(idWybraneZajecie - 1).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania();
+                        String namePupilSubject = idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen + " - " + nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko();
+                        box2 = new Box(BoxLayout.X_AXIS);
+                        box3 = new Box(BoxLayout.Y_AXIS);
+                        box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen));
+                        box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
+                        box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
+                        box2.add(box3);
+                        box2.add(Box.createGlue());
+                        JButton buttonNewGrade = new JButton("Dodaj ocenę");
+                        box2.add(buttonNewGrade);
+                        buttonNewGrade.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                int newGrade = newGradeFor(namePupilSubject);
+                                if (newGrade != -1) {
+                                    ocenyUczniow.add(new OcenaUcznia(idWybranyUczen, idWybraneZajecie, newGrade, LocalDateTime.now()));
+                                    zapiszDoPlikuOcenyUczniow();
+                                    box2 = new Box(BoxLayout.X_AXIS);
+                                    box3 = new Box(BoxLayout.Y_AXIS);
+                                    box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen));
+                                    box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
+                                    box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
+                                    box2.add(box3);
+                                    box2.add(Box.createGlue());
+                                    box2.add(buttonNewGrade);
+                                    createPanelKlasy(nazwaKlasy);
+                                }
+                            }
+                        });
+                    } else {
+                        box2 = new Box(BoxLayout.X_AXIS);
+                        box3 = new Box(BoxLayout.Y_AXIS);
+                        //headTable2 = new JLabel("");
+                        box2.add(new JLabel(""));
+                    }
+                    createPanelKlasy(nazwaKlasy);
+                }
+            });
+        } else {
+            String[] columnNames = new String[3];
+            columnNames[0] = "Klasa Nr";
+            columnNames[1] = "Przedmioty";
+            columnNames[2] = "Śrenia ocen";
+
+            table1 = new JTable(new Object[klasy.size()][3], columnNames);
+            for (int lo = 0; lo <= klasy.size() - 1; lo++) {
+                table1.setValueAt(klasy.get(lo).getNazwaKlasy(), lo, 0);
+                table1.setValueAt(listaNazwZajecKlasy(klasy.get(lo).getNazwaKlasy()), lo, 1);
+                table1.setValueAt(sredniaOcenKlasy(klasy.get(lo).getNazwaKlasy()), lo, 2);
+            }
+            table1.setAutoCreateRowSorter(false);
+            //table1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            table1.getColumn(columnNames[0]).setPreferredWidth(2);
+            table1.getColumn(columnNames[1]).setPreferredWidth(800);
+            table1.getColumn(columnNames[2]).setPreferredWidth(10);
+            JLabel headTable1 = new JLabel("Spis klas " + NAZWA_SZKOLY);
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            boxMain.setPreferredSize(new Dimension(1000, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.add(headTable1);
+            boxMain.add(table1.getTableHeader());
+            boxMain.add(table1);
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            panelKlasy.add(scrollBox);
+            panelKlasy.setSize(widthScreen, heightScreen);
+            panelKlasy.setBackground(Color.BLUE);
+        }
+        return panelKlasy;
+    }
+
+    private static JPanel createPanelPrzedmioty(String nazwaPrzedmiotu) {
+        panelPrzedmioty.removeAll();
+        if (!nazwaPrzedmiotu.equals("Spis ")) {
+            String[] columnNames = new String[6];
+            columnNames[0] = "ID nauczyciela";
+            columnNames[1] = "Imię";
+            columnNames[2] = "Nazwisko";
+            columnNames[3] = "Id zajęcia";
+            columnNames[4] = "Zajęcie w klasie";
+            columnNames[5] = "Średnia ocen";
+            table1 = new JTable(new Object[listaZajecPrzedmiotu(nazwaPrzedmiotu).size()][6], columnNames);
+            for (int lo = 0; lo <= listaZajecPrzedmiotu(nazwaPrzedmiotu).size() - 1; lo++) {
+                table1.setValueAt(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela(), lo, 0);
+                table1.setValueAt(nauczyciele.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela() - 1).getImie(), lo, 1);
+                table1.setValueAt(nauczyciele.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela() - 1).getNazwisko(), lo, 2);
+                table1.setValueAt(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdZajecie(), lo, 3);
+                table1.setValueAt(klasy.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdKlasa() - 1).getNazwaKlasy(), lo, 4);
+                table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdZajecie()), lo, 5);
+            }
+            table1.setSelectionForeground(Color.BLUE);
+            table1.setAutoCreateRowSorter(false);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+            JLabel headTable1 = new JLabel("Lista zajęć przedmiotu: " + nazwaPrzedmiotu);
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            boxMain.setPreferredSize(new Dimension(6 * 100, (listaZajecPrzedmiotu(nazwaPrzedmiotu).size() + 5) * table1.getRowHeight()));
+            boxMain.add(headTable1);
+            boxMain.add(table1.getTableHeader());
+            boxMain.add(table1);
+            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie");
+            box2.add(Box.createGlue());
+            box2.add(buttonNewAactivity);
+            boxMain.add(box2);
+            buttonNewAactivity.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Nauczyciel nowyNauczyciel = wybierzNowyNauczycielZajeciaPrzedmiotu(nazwaPrzedmiotu);
+                    if (nowyNauczyciel.getIdNauczyciela() > 0) {
+                        String nowaKlasa = wybierzNowaKlasaZajeciaNauczycielaId(nowyNauczyciel.getIdNauczyciela());
+                        if (!nowaKlasa.equals("")) {
+                            zajecia.add(new Zajecie(zajecia.size() + 1, podajIdPrzedmiotu(nazwaPrzedmiotu), nowyNauczyciel.getIdNauczyciela(), podajIdKlasy(nowaKlasa), LocalDateTime.now()));
+                            zapiszDoPlikuZajecia();
+                            createPanelPrzedmioty(nazwaPrzedmiotu);
+                        }
+                    }
+                }
+            });
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            panelPrzedmioty.add(scrollBox);
+            panelPrzedmioty.setSize(widthScreen, heightScreen);
+            panelPrzedmioty.setBackground(Color.BLUE);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+        } else {
+            String[] columnNames = new String[4];
+            columnNames[0] = "Przedmiot";
+            columnNames[1] = "Nauczyciel";
+            columnNames[2] = "Klasa";
+            columnNames[3] = "Średnia ocen";
+            ArrayList<String> nazwyPrzemiotowNauczania = new ArrayList<String>();
+            ArrayList<String> nazwyPrzedmiotowWszystkichNauczycieli = new ArrayList<String>();
+            ArrayList<String> nauczycieleWszystkichPrzedmiotow = new ArrayList<String>();
+            ArrayList<ArrayList<String>> nazwyKlasWszystkichNauczycieli = new ArrayList<ArrayList<String>>();
+            for (PrzedmiotNauczania pn : przedmiotyNauczania) {
+                nazwyPrzemiotowNauczania.add(pn.getPrzedmiotNauczania());
+            }
+            nazwyPrzemiotowNauczania.sort(null);
+            for (String npn : nazwyPrzemiotowNauczania) {
+                if (listaNauczycieliPrzedmiotuId(podajIdPrzedmiotu(npn)).size() > 0) {
+                    for (Nauczyciel n : listaNauczycieliPrzedmiotuId(podajIdPrzedmiotu(npn))) {
+                        nazwyPrzedmiotowWszystkichNauczycieli.add(npn);
+                        nauczycieleWszystkichPrzedmiotow.add(n.getImie() + " " + n.getNazwisko());
+                        nazwyKlasWszystkichNauczycieli.add(listaNazwKlasIdPrzedmiotuNauczyciela(podajIdPrzedmiotu(npn), n.getIdNauczyciela()));
+                    }
                 } else {
-                    box2 = new Box(BoxLayout.X_AXIS);
-                    box3 = new Box(BoxLayout.Y_AXIS);
-                    headTable2 = new JLabel(" ");
-                    box2.add(headTable2);
+                    nazwyPrzedmiotowWszystkichNauczycieli.add(npn);
+                    nauczycieleWszystkichPrzedmiotow.add("");
+                    nazwyKlasWszystkichNauczycieli.add(new ArrayList<String>());
                 }
-                panelMenuA.removeAll();
-                createPanelMenuA(nazwaKlasy);
             }
-        });
-        return panelMenuA;
-    }
-
-    private static JPanel createPanelMenuB(String nazwaPrzedmiotu) {
-        panelMenuB.removeAll();
-        String[] columnNames = new String[6];
-        columnNames[0] = "ID nauczyciela";
-        columnNames[1] = "Imię";
-        columnNames[2] = "Nazwisko";
-        columnNames[3] = "Id zajęcia";
-        columnNames[4] = "Zajęcie w klasie";
-        columnNames[5] = "Średnia ocen";
-
-        table1 = new JTable(new Object[listaZajecPrzedmiotu(nazwaPrzedmiotu).size()][6], columnNames);
-        for (int lo = 0; lo <= listaZajecPrzedmiotu(nazwaPrzedmiotu).size() - 1; lo++) {
-            table1.setValueAt(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela(), lo, 0);
-            table1.setValueAt(nauczyciele.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela() - 1).getImie(), lo, 1);
-            table1.setValueAt(nauczyciele.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela() - 1).getNazwisko(), lo, 2);
-            table1.setValueAt(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdZajecie(), lo, 3);
-            table1.setValueAt(klasy.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdKlasa() - 1).getNazwaKlasy(), lo, 4);
-            table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdZajecie()), lo, 5);
-        }
-        table1.setSelectionForeground(Color.BLUE);
-        table1.setAutoCreateRowSorter(false);
-        box2 = new Box(BoxLayout.X_AXIS);
-        box3 = new Box(BoxLayout.Y_AXIS);
-        JLabel headTable1 = new JLabel("Lista zajęć przedmiotu: " + nazwaPrzedmiotu);
-        headTable1.setFont(new Font(null, Font.BOLD, 14));
-        headTable1.setAlignmentX(CENTER_ALIGNMENT);
-        Box boxMain = new Box(BoxLayout.Y_AXIS);
-        boxMain.setPreferredSize(new Dimension(6 * 100, (listaZajecPrzedmiotu(nazwaPrzedmiotu).size() + 5) * table1.getRowHeight()));
-        boxMain.add(headTable1);
-        boxMain.add(table1.getTableHeader());
-        boxMain.add(table1);
-        JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie");
-        box2.add(Box.createGlue());
-        box2.add(buttonNewAactivity);
-
-
-        boxMain.add(box2);
-        //boxMain.setAlignmentX(LEFT_ALIGNMENT);
-        buttonNewAactivity.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Nauczyciel nowyNauczyciel = wybierzNowyNauczycielZajeciaPrzedmiotu(nazwaPrzedmiotu);
-                if (nowyNauczyciel.getIdNauczyciela() > 0) {
-                    String nowaKlasa = wybierzNowaKlasaZajeciaNauczycielaId(nowyNauczyciel.getIdNauczyciela());
-                    if (!nowaKlasa.equals("")) {
-                        zajecia.add(new Zajecie(zajecia.size() + 1, podajIdPrzedmiotu(nazwaPrzedmiotu), nowyNauczyciel.getIdNauczyciela(), podajIdKlasy(nowaKlasa), LocalDateTime.now()));
-                        zapiszDoPlikuZajecia();
-                        createPanelMenuB(nazwaPrzedmiotu);
+            table1 = new JTable(new Object[nazwyPrzedmiotowWszystkichNauczycieli.size()][4], columnNames);
+            for (int lo = 0; lo <= nazwyPrzedmiotowWszystkichNauczycieli.size() - 1; lo++) {
+                table1.setValueAt(nazwyPrzedmiotowWszystkichNauczycieli.get(lo), lo, 0);
+                table1.setValueAt(nauczycieleWszystkichPrzedmiotow.get(lo), lo, 1);
+                table1.setValueAt(nazwyKlasWszystkichNauczycieli.get(lo), lo, 2);
+                if (!nauczycieleWszystkichPrzedmiotow.get(lo).equals("")) {
+                    table1.setValueAt(sredniaOcenNauczycielazPrzedmiotu(podajIdNauczyciela(nauczycieleWszystkichPrzedmiotow.get(lo)), podajIdPrzedmiotu(nazwyPrzedmiotowWszystkichNauczycieli.get(lo))), lo, 3);
+                }
+            }
+            table1.setAutoCreateRowSorter(false);
+            JLabel headTable1 = new JLabel("Spis przedmiotów nauczania " + NAZWA_SZKOLY);
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            boxMain.setPreferredSize(new Dimension(500, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.add(headTable1);
+            boxMain.add(table1.getTableHeader());
+            boxMain.add(table1);
+            JButton buttonNewSubjetTeaching = new JButton("Dodaj nowy przedmiot");
+            box2.add(Box.createGlue());
+            box2.add(buttonNewSubjetTeaching);
+            boxMain.add(box2);
+            buttonNewSubjetTeaching.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    PrzedmiotNauczania nowyPrzedmiot = wybierzNowyPrzedmiot();
+                    if (nowyPrzedmiot.getIdPrzedmiotNauczania() > 0) {
+                        przedmiotyNauczania.add(nowyPrzedmiot);
+                        zapiszDoPlikuPrzedmiotyNauczania();
+                        mainFrame.remove(menuBar);
+                        mainFrame.setJMenuBar(createMenuGlowne());
+                        mainFrame.setVisible(true);
+                        createPanelPrzedmioty(nazwaPrzedmiotu);
                     }
                 }
-            }
-        });
-        //boxMain.add(box2);
-        JScrollPane scrollBox = new JScrollPane(boxMain);
-        //scrollBox.setAlignmentX(RIGHT_ALIGNMENT);
-        //JScrollPane scrollBox = new JScrollPane(table1);
-        //scrollBox.setPreferredSize(new Dimension(6 * 100, (listaZajecPrzedmiotu(nazwaPrzedmiotu).size() + 3) * table1.getRowHeight()));
-        panelMenuB.add(scrollBox);
-        panelMenuB.setSize(widthScreen, heightScreen);
-        panelMenuB.setBackground(Color.BLUE);
-        box2 = new Box(BoxLayout.X_AXIS);
-        box3 = new Box(BoxLayout.Y_AXIS);
-        return panelMenuB;
+            });
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            panelPrzedmioty.add(scrollBox);
+            panelPrzedmioty.setSize(widthScreen, heightScreen);
+            panelPrzedmioty.setBackground(Color.BLUE);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+        }
+        return panelPrzedmioty;
     }
 
-    private static JPanel createPanelMenuC(String imieINazwiskoNauczyciela) {
-        panelMenuC.removeAll();
-        String[] columnNames = new String[4];
-        columnNames[0] = "ID zajęcia";
-        columnNames[1] = "Nazwa przedmiotu";
-        columnNames[2] = "Klasa";
-        columnNames[3] = "Średnia ocen";
-
-
-        table1 = new JTable(new Object[listaZajecNauczyciela(imieINazwiskoNauczyciela).size()][4], columnNames);
-        for (int lo = 0; lo <= listaZajecNauczyciela(imieINazwiskoNauczyciela).size() - 1; lo++) {
-            table1.setValueAt(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdZajecie(), lo, 0);
-            table1.setValueAt(przedmiotyNauczania.get(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania(), lo, 1);
-            table1.setValueAt(klasy.get(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdKlasa() - 1).getNazwaKlasy(), lo, 2);
-            table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdZajecie()), lo, 3);
-        }
-        table1.setSelectionForeground(Color.BLUE);
-        table1.setAutoCreateRowSorter(false);
+    private static JPanel createPanelNauczyciele(String imieINazwiskoNauczyciela) {
+        panelNauczyciele.removeAll();
         box2 = new Box(BoxLayout.X_AXIS);
         box3 = new Box(BoxLayout.Y_AXIS);
-        JLabel headTable1 = new JLabel("Lista zajęć nauczyciela: " + imieINazwiskoNauczyciela);
-        headTable1.setFont(new Font(null, Font.BOLD, 14));
-        headTable1.setAlignmentX(CENTER_ALIGNMENT);
-        Box boxMain = new Box(BoxLayout.Y_AXIS);
-        boxMain.setPreferredSize(new Dimension(6 * 100, (listaZajecNauczyciela(imieINazwiskoNauczyciela).size() + 5) * table1.getRowHeight()));
-        boxMain.add(headTable1);
-        boxMain.add(table1.getTableHeader());
-        boxMain.add(table1);
-        JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie");
-        box2.add(Box.createGlue());
-        box2.add(buttonNewAactivity);
-
-
-        boxMain.add(box2);
-        //boxMain.setAlignmentX(LEFT_ALIGNMENT);
-        buttonNewAactivity.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                PrzedmiotNauczania nowyPrzedmiot = wybierzNowyPrzedmiotZajeciaNauczycielaId(podajIdNauczyciela(imieINazwiskoNauczyciela));
-                if (nowyPrzedmiot.getIdPrzedmiotNauczania() > 0) {
-                    String nowaKlasa = wybierzNowaKlasaZajeciaNauczycielaId(podajIdNauczyciela(imieINazwiskoNauczyciela));
-                    if (!nowaKlasa.equals("")) {
-                        zajecia.add(new Zajecie(zajecia.size() + 1, nowyPrzedmiot.getIdPrzedmiotNauczania(), podajIdNauczyciela(imieINazwiskoNauczyciela), podajIdKlasy(nowaKlasa), LocalDateTime.now()));
-                        zapiszDoPlikuZajecia();
-                        createPanelMenuC(imieINazwiskoNauczyciela);
+        if (!imieINazwiskoNauczyciela.equals("Spis ")) {
+            String[] columnNames = new String[4];
+            columnNames[0] = "ID zajęcia";
+            columnNames[1] = "Nazwa przedmiotu";
+            columnNames[2] = "Klasa";
+            columnNames[3] = "Średnia ocen";
+            table1 = new JTable(new Object[listaZajecNauczyciela(imieINazwiskoNauczyciela).size()][4], columnNames);
+            for (int lo = 0; lo <= listaZajecNauczyciela(imieINazwiskoNauczyciela).size() - 1; lo++) {
+                table1.setValueAt(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdZajecie(), lo, 0);
+                table1.setValueAt(przedmiotyNauczania.get(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania(), lo, 1);
+                table1.setValueAt(klasy.get(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdKlasa() - 1).getNazwaKlasy(), lo, 2);
+                table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdZajecie()), lo, 3);
+            }
+            table1.setSelectionForeground(Color.BLUE);
+            table1.setAutoCreateRowSorter(false);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+            JLabel headTable1 = new JLabel("Lista zajęć nauczyciela: " + imieINazwiskoNauczyciela);
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            boxMain.setPreferredSize(new Dimension(6 * 100, (listaZajecNauczyciela(imieINazwiskoNauczyciela).size() + 5) * table1.getRowHeight()));
+            boxMain.add(headTable1);
+            boxMain.add(table1.getTableHeader());
+            boxMain.add(table1);
+            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie");
+            box2.add(Box.createGlue());
+            box2.add(buttonNewAactivity);
+            boxMain.add(box2);
+            buttonNewAactivity.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    PrzedmiotNauczania nowyPrzedmiot = wybierzNowyPrzedmiotZajeciaNauczycielaId(podajIdNauczyciela(imieINazwiskoNauczyciela));
+                    if (nowyPrzedmiot.getIdPrzedmiotNauczania() > 0) {
+                        String nowaKlasa = wybierzNowaKlasaZajeciaNauczycielaId(podajIdNauczyciela(imieINazwiskoNauczyciela));
+                        if (!nowaKlasa.equals("")) {
+                            zajecia.add(new Zajecie(zajecia.size() + 1, nowyPrzedmiot.getIdPrzedmiotNauczania(), podajIdNauczyciela(imieINazwiskoNauczyciela), podajIdKlasy(nowaKlasa), LocalDateTime.now()));
+                            zapiszDoPlikuZajecia();
+                            createPanelNauczyciele(imieINazwiskoNauczyciela);
+                        }
                     }
                 }
+            });
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            panelNauczyciele.add(scrollBox);
+            panelNauczyciele.setSize(widthScreen, heightScreen);
+            panelNauczyciele.setBackground(Color.BLUE);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+        } else {
+            String[] columnNames = new String[4];
+            columnNames[0] = "Nauczyciel";
+            columnNames[1] = "Przedmiot";
+            columnNames[2] = "Klasa";
+            columnNames[3] = "Średnia ocen";
+            ArrayList<String> nauczycieleSzkoly = new ArrayList<String>();
+            ArrayList<String> nauczycieleWszystkichPrzedmiotow = new ArrayList<String>();
+            ArrayList<String> nazwyPrzemiotowNauczania = new ArrayList<String>();
+            ArrayList<ArrayList<String>> nazwyKlasWszystkichNauczycieli = new ArrayList<ArrayList<String>>();
+            for (Nauczyciel n : nauczyciele) {
+                nauczycieleSzkoly.add(n.getImie() + " " + n.getNazwisko());
             }
-        });
-        //boxMain.add(box2);
-        JScrollPane scrollBox = new JScrollPane(boxMain);
-        //scrollBox.setAlignmentX(RIGHT_ALIGNMENT);
-        //JScrollPane scrollBox = new JScrollPane(table1);
-        //scrollBox.setPreferredSize(new Dimension(6 * 100, (listaZajecPrzedmiotu(nazwaPrzedmiotu).size() + 3) * table1.getRowHeight()));
-        panelMenuC.add(scrollBox);
-        panelMenuC.setSize(widthScreen, heightScreen);
-        panelMenuC.setBackground(Color.BLUE);
-        box2 = new Box(BoxLayout.X_AXIS);
-        box3 = new Box(BoxLayout.Y_AXIS);
-        return panelMenuC;
+            nauczycieleSzkoly.sort(null);
+            for (String ns : nauczycieleSzkoly) {
+                if (listaNazwPrzedmiotowNauczycielaId(podajIdNauczyciela(ns)).size() > 0) {
+                    for (String lp : listaNazwPrzedmiotowNauczycielaId(podajIdNauczyciela(ns))) {
+                        nauczycieleWszystkichPrzedmiotow.add(ns);
+                        nazwyPrzemiotowNauczania.add(lp);
+                        nazwyKlasWszystkichNauczycieli.add(listaNazwKlasIdPrzedmiotuNauczyciela(podajIdPrzedmiotu(lp), podajIdNauczyciela(ns)));
+                    }
+                } else {
+                    nauczycieleWszystkichPrzedmiotow.add(ns);
+                    nazwyPrzemiotowNauczania.add("");
+                    nazwyKlasWszystkichNauczycieli.add(new ArrayList<String>());
+                }
+            }
+            table1 = new JTable(new Object[nauczycieleWszystkichPrzedmiotow.size()][4], columnNames);
+            for (int lo = 0; lo <= nauczycieleWszystkichPrzedmiotow.size() - 1; lo++) {
+                table1.setValueAt(nauczycieleWszystkichPrzedmiotow.get(lo), lo, 0);
+                table1.setValueAt(nazwyPrzemiotowNauczania.get(lo), lo, 1);
+                table1.setValueAt(nazwyKlasWszystkichNauczycieli.get(lo), lo, 2);
+                if (!nazwyPrzemiotowNauczania.get(lo).equals("")) {
+                    table1.setValueAt(sredniaOcenNauczycielazPrzedmiotu(podajIdNauczyciela(nauczycieleWszystkichPrzedmiotow.get(lo)), podajIdPrzedmiotu(nazwyPrzemiotowNauczania.get(lo))), lo, 3);
+                }
+            }
+            table1.setAutoCreateRowSorter(false);
+            JLabel headTable1 = new JLabel("Spis nauczycieli " + NAZWA_SZKOLY);
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            boxMain.setPreferredSize(new Dimension(500, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.add(headTable1);
+            boxMain.add(table1.getTableHeader());
+            boxMain.add(table1);
+
+            JButton buttonNewTeacher = new JButton("Dodaj nowego nauczyciela");
+            box2.add(Box.createGlue());
+            box2.add(buttonNewTeacher);
+            boxMain.add(box2);
+            buttonNewTeacher.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Nauczyciel nowyNauczyciel = dodajNowegoNauczyciela();
+                    if (nowyNauczyciel.getIdNauczyciela() > 0) {
+                        nauczyciele.add(nowyNauczyciel);
+                        zapiszDoPlikuNauczyciele();
+                    }
+                    mainFrame.remove(menuBar);
+                    mainFrame.setJMenuBar(createMenuGlowne());
+                    mainFrame.setVisible(true);
+                    createPanelNauczyciele(imieINazwiskoNauczyciela);
+                }
+            });
+
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            panelNauczyciele.add(scrollBox);
+            panelNauczyciele.setSize(widthScreen, heightScreen);
+            panelNauczyciele.setBackground(Color.BLUE);
+            box2 = new Box(BoxLayout.X_AXIS);
+            box3 = new Box(BoxLayout.Y_AXIS);
+
+        }
+        return panelNauczyciele;
     }
 
     private static JPanel createPanel1() {
