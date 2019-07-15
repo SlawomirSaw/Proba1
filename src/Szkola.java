@@ -21,6 +21,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static int heightScreen = Toolkit.getDefaultToolkit().getScreenSize().height;
     private static int selectedColumn = 0;
     private static int selectedRow = 0;
+    private static int columna = 0;
     private static ArrayList<Uczen> uczniowieSzkoly = new ArrayList<>();
     private static ArrayList<Klasa> klasy = new ArrayList<>();
     private static ArrayList<UczniowieKlasy> uczniowieSzkolyWgKlas = new ArrayList<>();
@@ -1175,6 +1176,8 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     subMenu11.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
+                            selectedRow = 0;
+                            selectedColumn = 0;
                             panelMain.removeAll();
                             //headTable2 = new JLabel("");
                             if (m.equals(menuA)) {
@@ -1207,7 +1210,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static JPanel createPanelKlasy(String nazwaKlasy) {
         panelKlasy.removeAll();
         if (!nazwaKlasy.equals("Spis ")) {
-
             String[] columnNames = new String[3 + listaNazwZajecKlasy(nazwaKlasy).size()];
             columnNames[0] = "ID ucznia";
             columnNames[1] = "Imię ucznia";
@@ -1215,25 +1217,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             for (int j = 0; j < listaNazwZajecKlasy(nazwaKlasy).size(); j++) {
                 columnNames[3 + j] = listaNazwZajecKlasy(nazwaKlasy).get(j) + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getNazwisko();
             }
-            table1 = new JTable(new Object[listaUczniKlasy(nazwaKlasy).size() + 1][3 + listaZajecKlasy(nazwaKlasy).size()], columnNames);
-            for (int lo = 0; lo <= listaUczniKlasy(nazwaKlasy).size() - 1; lo++) {
-                table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getidUcznia(), lo, 0);
-                table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getImie(), lo, 1);
-                table1.setValueAt(listaUczniKlasy(nazwaKlasy).get(lo).getNazwisko(), lo, 2);
-                for (int k = 0; k < listaZajecKlasy(nazwaKlasy).size(); k++) {
-                    table1.setValueAt(listaOcenUczniaZZajec(listaUczniKlasy(nazwaKlasy).get(lo).getidUcznia(), listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()), lo, 3 + k);
-                    if (sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()) > 0) {
-                        table1.setValueAt(sredniaOcenKlasyZZajec(listaZajecKlasy(nazwaKlasy).get(k).getIdZajecie()), listaUczniKlasy(nazwaKlasy).size(), 3 + k);
-                    }
-                }
-                table1.setValueAt("średnia ocen:", uczniowieSzkolyWgKlas.get(podajIdKlasy(nazwaKlasy) - 1).getIdUczniowKlasy().size(), 2);
-            }
-            table1.setAutoCreateRowSorter(false);
-            //table1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            table1.getColumn(columnNames[0]).setPreferredWidth(1);
-            table1.getColumn(columnNames[1]).setPreferredWidth(1);
-            table1.getColumn(columnNames[2]).setPreferredWidth(1);
-            //table1.setSelectionBackground(Color.RED);
+
 
             JTable table3 = new JTable(new TableModel() {
                 @Override
@@ -1248,13 +1232,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
                 @Override
                 public String getColumnName(int columnIndex) {
-                    String[] columnNames = new String[3 + listaNazwZajecKlasy(nazwaKlasy).size()];
-                    columnNames[0] = "ID ucznia";
-                    columnNames[1] = "Imię ucznia";
-                    columnNames[2] = "Nazwisko ucznia";
-                    for (int j = 0; j < listaNazwZajecKlasy(nazwaKlasy).size(); j++) {
-                        columnNames[3 + j] = listaNazwZajecKlasy(nazwaKlasy).get(j) + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getNazwisko();
-                    }
                     return columnNames[columnIndex];
                 }
 
@@ -1310,64 +1287,363 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                 public void removeTableModelListener(TableModelListener l) {
 
                 }
+
+                
+            }, new TableColumnModel() {
+                @Override
+                public void addColumn(TableColumn aColumn) {
+                    this.addColumn(aColumn);
+                }
+
+                @Override
+                public void removeColumn(TableColumn column) {
+
+                }
+
+                @Override
+                public void moveColumn(int columnIndex, int newIndex) {
+
+                }
+
+                @Override
+                public void setColumnMargin(int newMargin) {
+
+                }
+
+                @Override
+                public int getColumnCount() {
+                    return 3 + listaNazwZajecKlasy(nazwaKlasy).size();
+                }
+
+                @Override
+                public Enumeration<TableColumn> getColumns() {
+                    Vector<TableColumn> v = new Vector<>(getColumnCount());
+                    for (int i = 0; i < getColumnCount(); i++) {
+                        v.addElement(getColumn(i));
+                    }
+                    Enumeration<TableColumn> e = v.elements();
+                    return new Enumeration<TableColumn>() {
+
+                        @Override
+                        public boolean hasMoreElements() {
+                            return e.hasMoreElements();
+                        }
+
+                        @Override
+                        public TableColumn nextElement() {
+                            return e.nextElement();
+                        }
+                    };
+                }
+
+                @Override
+                public int getColumnIndex(Object columnIdentifier) {
+                    int columnId = 0;
+                    for (int i = 0; i < columnNames.length; i++) {
+                        if (columnIdentifier.equals(columnNames[i])) {
+                            columnId = i;
+                        }
+                    }
+                    return 0;
+                }
+
+                @Override
+                public TableColumn getColumn(int columnIndex) {
+                    columna = columnIndex;
+                    JLabel columnLabel = new JLabel(columnNames[columnIndex]);
+                    return new TableColumn(2, 30, new TableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            //column = 2;
+                            System.out.println("columnIndex " + columna);
+                            System.out.println("column " + column);
+                            System.out.println("row " + row);
+                            JLabel newL = new JLabel();
+                            String rowTemp = "";
+                            if (value != null) {
+                                rowTemp = value.toString();
+                            }
+                            if (row == selectedRow && column == selectedColumn) {
+                                newL.setText(rowTemp);
+                                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+                                newL.setForeground(Color.RED);
+                                return newL;
+                            } else {
+                                newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+                                if (row == table.getRowCount() - 1) {
+                                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+                                }
+                                if (column >= 0 && column <= 2) {
+                                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+                                }
+                                newL.setText(rowTemp);
+                                System.out.println(newL.getText());
+                                return newL;
+                            }
+                        }
+                    }, new TableCellEditor() {
+                        @Override
+                        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+                            return null;
+                        }
+
+                        @Override
+                        public Object getCellEditorValue() {
+                            return null;
+                        }
+
+                        @Override
+                        public boolean isCellEditable(EventObject anEvent) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean shouldSelectCell(EventObject anEvent) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean stopCellEditing() {
+                            return false;
+                        }
+
+                        @Override
+                        public void cancelCellEditing() {
+
+                        }
+
+                        @Override
+                        public void addCellEditorListener(CellEditorListener l) {
+
+                        }
+
+                        @Override
+                        public void removeCellEditorListener(CellEditorListener l) {
+
+                        }
+                    });
+                }
+
+                @Override
+                public int getColumnMargin() {
+                    return 0;
+                }
+
+                @Override
+                public int getColumnIndexAtX(int xPosition) {
+                    return 0;
+                }
+
+                @Override
+                public int getTotalColumnWidth() {
+                    int totalHeaderTableWidth = 0;
+                    for (int i = 0; i < columnNames.length; i++) {
+                        JLabel columnLabel = new JLabel(columnNames[i]);
+                        totalHeaderTableWidth = totalHeaderTableWidth + columnLabel.getPreferredSize().width + 10;
+                    }
+                    return totalHeaderTableWidth;
+                }
+
+                @Override
+                public void setColumnSelectionAllowed(boolean flag) {
+
+                }
+
+                @Override
+                public boolean getColumnSelectionAllowed() {
+                    return false;
+                }
+
+                @Override
+                public int[] getSelectedColumns() {
+                    return new int[0];
+                }
+
+                @Override
+                public int getSelectedColumnCount() {
+                    return 0;
+                }
+
+                @Override
+                public void setSelectionModel(ListSelectionModel newModel) {
+
+                }
+
+                @Override
+                public ListSelectionModel getSelectionModel() {
+                    return new ListSelectionModel() {
+                        @Override
+                        public void setSelectionInterval(int index0, int index1) {
+
+                        }
+
+                        @Override
+                        public void addSelectionInterval(int index0, int index1) {
+
+                        }
+
+                        @Override
+                        public void removeSelectionInterval(int index0, int index1) {
+
+                        }
+
+                        @Override
+                        public int getMinSelectionIndex() {
+                            return 0;
+                        }
+
+                        @Override
+                        public int getMaxSelectionIndex() {
+                            return 0;
+                        }
+
+                        @Override
+                        public boolean isSelectedIndex(int index) {
+                            return false;
+                        }
+
+                        @Override
+                        public int getAnchorSelectionIndex() {
+                            return 0;
+                        }
+
+                        @Override
+                        public void setAnchorSelectionIndex(int index) {
+
+                        }
+
+                        @Override
+                        public int getLeadSelectionIndex() {
+                            return 0;
+                        }
+
+                        @Override
+                        public void setLeadSelectionIndex(int index) {
+
+                        }
+
+                        @Override
+                        public void clearSelection() {
+
+                        }
+
+                        @Override
+                        public boolean isSelectionEmpty() {
+                            return false;
+                        }
+
+                        @Override
+                        public void insertIndexInterval(int index, int length, boolean before) {
+
+                        }
+
+                        @Override
+                        public void removeIndexInterval(int index0, int index1) {
+
+                        }
+
+                        @Override
+                        public void setValueIsAdjusting(boolean valueIsAdjusting) {
+
+                        }
+
+                        @Override
+                        public boolean getValueIsAdjusting() {
+                            return false;
+                        }
+
+                        @Override
+                        public void setSelectionMode(int selectionMode) {
+
+                        }
+
+                        @Override
+                        public int getSelectionMode() {
+                            return 0;
+                        }
+
+                        @Override
+                        public void addListSelectionListener(ListSelectionListener x) {
+
+                        }
+
+                        @Override
+                        public void removeListSelectionListener(ListSelectionListener x) {
+
+                        }
+                    };
+                }
+
+                @Override
+                public void addColumnModelListener(TableColumnModelListener x) {
+
+                }
+
+                @Override
+                public void removeColumnModelListener(TableColumnModelListener x) {
+
+                }
             });
 
-
-            for (int i = 0; i < table3.getColumnCount(); i++) {
-                table3.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
-                    @Override
-                    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
-                        JLabel newL = new JLabel();
-                        String rowTemp = "";
-                        if (table3.getValueAt(row, column) != null) {
-                            rowTemp = table3.getValueAt(row, column).toString();
-                        }
-                        if (row == selectedRow && column == selectedColumn) {
+            //System.out.println("1: " + table3.getColumnCount());
+            //System.out.println("2 " + table3.getRowCount());
+            //System.out.println("3 " + table3.getValueAt(1, 1));
+            //System.out.println("4 " + table1.getTableHeader());
 
 
-                            //System.out.println(rowTemp);
-                            //newL.add(table3.getComponentAt(row, column).setFont(new Font(Font.MONOSPACED, Font.BOLD, 16)));
-                            //newL.setText(table3.getComponentAt(row, column).toString());
-                            newL.setText(rowTemp);
-                            newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD,13));
-                            newL.setForeground(Color.RED);
-                            //newL.setBackground(Color.RED);
-                            JPanel newP = new JPanel();
-                            newP.add(newL);
-                            //newP.setBackground(Color.RED);
-                            //createPanelKlasy(nazwaKlasy);
-                            return newL;
-                        } else {
-                            newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN,13));
-                            if (row == table3.getRowCount() - 1) {
-                                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD,13));
-                            }
-                            newL.setText(rowTemp);
-                            return newL;
-                        }
-
-
-                    }
-                });
-            }
+            //for (int i = 0; i < table3.getColumnCount(); i++) {
+            //    table3.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
+            //        @Override
+            //        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            //            JLabel newL = new JLabel();
+            //            String rowTemp = "";
+            //            if (table3.getValueAt(row, column) != null) {
+            //                rowTemp = table3.getValueAt(row, column).toString();
+            //            }
+            //            if (row == selectedRow && column == selectedColumn) {
+            //                newL.setText(rowTemp);
+            //                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+            //                newL.setForeground(Color.RED);
+            //                return newL;
+            //            } else {
+            //                newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+            //                if (row == table3.getRowCount() - 1) {
+            //                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+            //                }
+            //                if (column >= 0 && column <= 2) {
+            //                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+            //                }
+            //                newL.setText(rowTemp);
+            //                System.out.println(newL.getText());
+            //                return newL;
+            //            }
+            //        }
+            //    });
             //}
-            table3.getColumn(columnNames[0]).setPreferredWidth(1);
-            table3.getColumn(columnNames[1]).setPreferredWidth(1);
-            table3.getColumn(columnNames[2]).setPreferredWidth(1);
+
+
+            int totalHeaderTableWidth = 0;
+            for (int i = 0; i < columnNames.length; i++) {
+                JLabel columnLabel = new JLabel(columnNames[i]);
+                table3.getColumn(columnNames[i]).setPreferredWidth(columnLabel.getPreferredSize().width + 10);
+                totalHeaderTableWidth = totalHeaderTableWidth + columnLabel.getPreferredSize().width + 10;
+            }
+            System.out.println(totalHeaderTableWidth);
             table1 = table3;
 
             JLabel headTable1 = new JLabel("KLASA nr " + nazwaKlasy + " - spis ocen");
             headTable1.setFont(new Font(null, Font.BOLD, 14));
             headTable1.setAlignmentX(CENTER_ALIGNMENT);
             Box boxMain = new Box(BoxLayout.Y_AXIS);
-            boxMain.setPreferredSize(new Dimension((3 + listaZajecKlasy(nazwaKlasy).size()) * 150, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.setPreferredSize(new Dimension(totalHeaderTableWidth, (table1.getRowCount() + 6) * table1.getRowHeight()));
             boxMain.add(headTable1);
             boxMain.add(table1.getTableHeader());
             boxMain.add(table1);
             boxMain.add(Box.createGlue());
             boxMain.add(box2);
-            JScrollPane scrollBox = new JScrollPane(boxMain);
+            //boxMain.setVisible(true);
+            JScrollPane scrollBox = new JScrollPane(table3);
+            //scrollBox.setVisible(true);
             panelKlasy.add(scrollBox);
             panelKlasy.setSize(widthScreen, heightScreen);
             panelKlasy.setBackground(Color.BLUE);
