@@ -1,6 +1,5 @@
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 public class Zajecie implements Serializable {
     private int idZajecie;

@@ -19,51 +19,42 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static int iloscZajecWSzkole = 0;
     private static int widthScreen = Toolkit.getDefaultToolkit().getScreenSize().width;
     private static int heightScreen = Toolkit.getDefaultToolkit().getScreenSize().height;
-    private static int selectedColumn = 0;
-    private static int selectedRow = 0;
-    private static int columna = 0;
-    private static ArrayList<Uczen> uczniowieSzkoly = new ArrayList<>();
-    private static ArrayList<Klasa> klasy = new ArrayList<>();
-    private static ArrayList<UczniowieKlasy> uczniowieSzkolyWgKlas = new ArrayList<>();
-    private static ArrayList<Nauczyciel> nauczyciele = new ArrayList<>();
-    private static ArrayList<PrzedmiotNauczania> przedmiotyNauczania = new ArrayList<>();
-    private static ArrayList<Zajecie> zajecia = new ArrayList<>();
-    private static ArrayList<OcenaUcznia> ocenyUczniow = new ArrayList<>();
+    private static int selectedColumn = -1;
+    private static int selectedRow = -1;
+    private static ArrayList<Uczen> uczniowieSzkoly = new ArrayList<Uczen>();
+    private static ArrayList<Uczen> uczniowieSzkolySpisAlfabet = new ArrayList<Uczen>();
+    private static ArrayList<Klasa> klasy = new ArrayList<Klasa>();
+    private static ArrayList<UczniowieKlasy> uczniowieSzkolyWgKlas = new ArrayList<UczniowieKlasy>();
+    private static ArrayList<Nauczyciel> nauczyciele = new ArrayList<Nauczyciel>();
+    private static ArrayList<PrzedmiotNauczania> przedmiotyNauczania = new ArrayList<PrzedmiotNauczania>();
+    private static ArrayList<Zajecie> zajecia = new ArrayList<Zajecie>();
+    private static ArrayList<OcenaUcznia> ocenyUczniow = new ArrayList<OcenaUcznia>();
     private static boolean tak = false;
     private static Scanner sc = new Scanner(System.in);
     private static String imie = "";
     private static String nazwisko = "";
     private static String przedmiot = "";
     private static String nazwaWprowadzona = "";
-    private static String tabbed0 = "TabbedPanel0";
-    private static String tabbed1 = "TabbedPanel1";
-    private static String tabbed2 = "TabbedPanel2";
-    private static String tabbed3 = "TabbedPanel3";
-    private static String tabbed4 = "TabbedPanel4";
     private static JButton button;
     private static JScrollPane scrolPanelMain;
     private static JPanel panelMain;
-    private static JPanel panel0 = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panelKlasy = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panelPrzedmioty = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panelNauczyciele = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    private static JPanel panelUczniowie = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panel1 = new JPanel();
     private static JPanel panel2 = new JPanel();
     private static JPanel panel3 = new JPanel();
     private static JPanel panel4 = new JPanel();
     private static JFrame mainFrame;
     private static JMenuBar menuBar;
-    private static JTabbedPane tabbedPanel = new JTabbedPane();
-    private static JMenuBar menuBar1;
-    private static JLabel headTable2 = new JLabel(" ");
-    private static JTable table1 = new JTable();
-    private static Box box1 = new Box(BoxLayout.X_AXIS);
     private static Box box2 = new Box(BoxLayout.X_AXIS);
     private static Box box3 = new Box(BoxLayout.Y_AXIS);
 
     public static void main(String[] args) {
         System.out.println("Nazwa Szkoły: " + NAZWA_SZKOLY);
         uczniowieSzkoly = odczytZPlikuUczniowieSzkoly();
+        uczniowieSzkolySpisAlfabet = listaAlfabetUczniowSzkoly();
         uczniowieSzkolyWgKlas = odczytZPlikuUczniowieSzkolyWgKlas();
         for (UczniowieKlasy uk : uczniowieSzkolyWgKlas) {
             if (!uk.getIdUczniowKlasy().isEmpty()) {
@@ -516,6 +507,18 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return idKlasy;
     }
 
+    private static String podajNazweKlasyUczniaId(int idUcznia) {
+        String nazwaKlasyUcznia = "";
+        for (UczniowieKlasy u : uczniowieSzkolyWgKlas) {
+            for (Integer idU : u.getIdUczniowKlasy()) {
+                if (idU == idUcznia) {
+                    nazwaKlasyUcznia = klasy.get(u.getIdKlasy() - 1).getNazwaKlasy();
+                }
+            }
+        }
+        return nazwaKlasyUcznia;
+    }
+
     private static ArrayList<Uczen> listaUczniKlasy(String nazwaKlasy) {
         ArrayList<Uczen> listaUczniKlasy = new ArrayList<Uczen>();
         for (int j = 0; j < uczniowieSzkolyWgKlas.get(podajIdKlasy(nazwaKlasy) - 1).getIdUczniowKlasy().size(); j++) {
@@ -536,9 +539,9 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
     private static ArrayList<Zajecie> listaZajecKlasy(String nazwaKlasy) {
         ArrayList<Zajecie> listaZajecKlasy = new ArrayList<Zajecie>();
-        for (int l = 0; l < zajecia.size(); l++) {
-            if (podajIdKlasy(nazwaKlasy) == zajecia.get(l).getIdKlasa()) {
-                listaZajecKlasy.add(zajecia.get(l));
+        for (Zajecie zajecie : zajecia) {
+            if (podajIdKlasy(nazwaKlasy) == zajecie.getIdKlasa()) {
+                listaZajecKlasy.add(zajecie);
             }
         }
         return listaZajecKlasy;
@@ -546,12 +549,26 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
     private static ArrayList<Integer> listaOcenUczniaZZajec(Integer idUcznia, Integer idZajecia) {
         ArrayList<Integer> listaOcenUczniaZZajec = new ArrayList<Integer>();
-        for (int l = 0; l < ocenyUczniow.size(); l++) {
-            if (ocenyUczniow.get(l).getIdUcznia() == idUcznia && ocenyUczniow.get(l).getIdZajecia() == idZajecia) {
-                listaOcenUczniaZZajec.add(ocenyUczniow.get(l).getOcenaZZajeciaUcznia());
+        for (OcenaUcznia ocenaUcznia : ocenyUczniow) {
+            if (ocenaUcznia.getIdUcznia() == idUcznia && ocenaUcznia.getIdZajecia() == idZajecia) {
+                listaOcenUczniaZZajec.add(ocenaUcznia.getOcenaZZajeciaUcznia());
             }
         }
         return listaOcenUczniaZZajec;
+    }
+
+    private static ArrayList<Zajecie> listaAlfabetZajecUczniaId(Integer idUcznia) {
+        ArrayList<Zajecie> listaAlfabetZajecUcznia = new ArrayList<Zajecie>();
+        ArrayList<String> listaAlfabetNazwPrzedmiotowNauczaniaUcznia = listaNazwZajecKlasy(podajNazweKlasyUczniaId(idUcznia));
+        listaAlfabetNazwPrzedmiotowNauczaniaUcznia.sort(null);
+        for (int i = 0; i < listaAlfabetNazwPrzedmiotowNauczaniaUcznia.size(); i++) {
+            for (Zajecie z : listaZajecKlasy(podajNazweKlasyUczniaId(idUcznia))) {
+                if ((podajIdPrzedmiotu(listaAlfabetNazwPrzedmiotowNauczaniaUcznia.get(i)) == z.getIdPrzedmiotNauczania()) && !listaAlfabetZajecUcznia.contains(z)) {
+                    listaAlfabetZajecUcznia.add(z);
+                }
+            }
+        }
+        return listaAlfabetZajecUcznia;
     }
 
     private static ArrayList<Zajecie> listaZajecPrzedmiotu(String nazwaPrzedmiotu) {
@@ -612,6 +629,32 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             }
         }
         return listaZajecNauczyciela;
+    }
+
+    private static ArrayList<Uczen> listaAlfabetUczniowSzkoly() {
+        ArrayList<Uczen> listaAlfabetUczniowSzkoly = new ArrayList<Uczen>(uczniowieSzkoly);
+        ArrayList<String> listaAlfabetNazwUczniowSzkoly = new ArrayList<String>();
+        ArrayList<String> listaNazwiskUczniowSzkoly = new ArrayList<String>();
+        for (Uczen u : uczniowieSzkoly) {
+            listaNazwiskUczniowSzkoly.add(u.getNazwisko() + " " + u.getImie());
+        }
+        listaNazwiskUczniowSzkoly.sort(null);
+        for (int i = 0; i < listaNazwiskUczniowSzkoly.size(); i++) {
+            String imieUcznia = listaNazwiskUczniowSzkoly.get(i).substring(listaNazwiskUczniowSzkoly.get(i).indexOf(" ") + 1);
+            String nazwiskoUcznia = listaNazwiskUczniowSzkoly.get(i).substring(0, listaNazwiskUczniowSzkoly.get(i).indexOf(" "));
+            listaAlfabetNazwUczniowSzkoly.add(imieUcznia + " " + nazwiskoUcznia);
+        }
+        listaAlfabetNazwUczniowSzkoly.sort(null);
+        for (Uczen u : uczniowieSzkoly) {
+            for (int i = 0; i < listaAlfabetNazwUczniowSzkoly.size(); i++) {
+                String imieUcznia = listaAlfabetNazwUczniowSzkoly.get(i).substring(0, listaAlfabetNazwUczniowSzkoly.get(i).indexOf(" "));
+                String nazwiskoUcznia = listaAlfabetNazwUczniowSzkoly.get(i).substring(listaAlfabetNazwUczniowSzkoly.get(i).indexOf(" ") + 1);
+                if (u.getImie().equals(imieUcznia) && u.getNazwisko().equals(nazwiskoUcznia)) {
+                    listaAlfabetUczniowSzkoly.set(i, new Uczen(u.getidUcznia(), u.getImie(), u.getNazwisko()));
+                }
+            }
+        }
+        return listaAlfabetUczniowSzkoly;
     }
 
     private static int podajIdNauczyciela(String imieINazwiskoOsoby) {
@@ -678,6 +721,38 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             sredniaOcenNauczycielazPrzedmiotu = sumaOcen / liczbaOcen;
         }
         return sredniaOcenNauczycielazPrzedmiotu;
+    }
+
+    private static Float sredniaWszystkichOcenUczniaId(Integer idUcznia) {
+        Float sredniaWszystkichOcenUcznia = -1f;
+        Float sumaOcenUcznia = 0f;
+        int liczbaOcen = 0;
+        for (OcenaUcznia o : ocenyUczniow) {
+            if (o.getIdUcznia() == idUcznia) {
+                sumaOcenUcznia = sumaOcenUcznia + o.getOcenaZZajeciaUcznia();
+                liczbaOcen++;
+            }
+        }
+        if (liczbaOcen > 0) {
+            sredniaWszystkichOcenUcznia = sumaOcenUcznia / liczbaOcen;
+        }
+        return sredniaWszystkichOcenUcznia;
+    }
+
+    private static Float sredniaOcenUczniaZZajecId(Integer idUcznia, Integer idZajecia) {
+        Float sredniaOcenUczniaZZajec = -1f;
+        Float sumaOcenUcznia = 0f;
+        int liczbaOcen = 0;
+        for (OcenaUcznia o : ocenyUczniow) {
+            if (o.getIdUcznia() == idUcznia && o.getIdZajecia() == idZajecia) {
+                sumaOcenUcznia = sumaOcenUcznia + o.getOcenaZZajeciaUcznia();
+                liczbaOcen++;
+            }
+        }
+        if (liczbaOcen > 0) {
+            sredniaOcenUczniaZZajec = sumaOcenUcznia / liczbaOcen;
+        }
+        return sredniaOcenUczniaZZajec;
     }
 
     private static String dodaj(String nazwa) {
@@ -921,6 +996,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         setDefaultLookAndFeelDecorated(true);
         mainFrame.setBounds(0, 0, widthScreen, heightScreen);
         panelMain = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelMain.setAlignmentY(JPanel.TOP_ALIGNMENT);
         scrolPanelMain = new JScrollPane();
         scrolPanelMain.setViewportView(panelMain);
         panelMain.setBackground(Color.BLUE);
@@ -1002,16 +1078,16 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
     private static PrzedmiotNauczania wybierzNowyPrzedmiotZajeciaNauczycielaId(int idNauczyciel) {
         PrzedmiotNauczania nowyPrzedmiotZajecia = new PrzedmiotNauczania(0, "");
-        ArrayList<String> nazwyPrzedmiotów = new ArrayList<String>();
+        ArrayList<String> nazwyPrzedmiotow = new ArrayList<String>();
         for (PrzedmiotNauczania p : przedmiotyNauczania) {
-            nazwyPrzedmiotów.add(p.getPrzedmiotNauczania());
+            nazwyPrzedmiotow.add(p.getPrzedmiotNauczania());
         }
-        nazwyPrzedmiotów.sort(null);
+        nazwyPrzedmiotow.sort(null);
         JOptionPane inputnowyPrzedmiotZajecia = new JOptionPane();
         inputnowyPrzedmiotZajecia.setWantsInput(true);
-        String[] possibleValues = new String[nazwyPrzedmiotów.size()];
-        for (int i = 0; i < nazwyPrzedmiotów.size(); i++) {
-            possibleValues[i] = nazwyPrzedmiotów.get(i);
+        String[] possibleValues = new String[nazwyPrzedmiotow.size()];
+        for (int i = 0; i < nazwyPrzedmiotow.size(); i++) {
+            possibleValues[i] = nazwyPrzedmiotow.get(i);
         }
         Object selectedSubject = JOptionPane.showInputDialog(null,
                 "Wybierz przedmiot dla nauczyciela " + nauczyciele.get(idNauczyciel - 1).getImie() + " " + nauczyciele.get(idNauczyciel - 1).getNazwisko() + ":", "Lista przedmiotów nauczania",
@@ -1100,7 +1176,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         String C2 = "C2";
         String C3 = "C3";
         String C4 = "C4";
-        String menuD = "D";
+        String menuD = "UCZNIOWIE";
         String D1 = "D1";
         String D2 = "D2";
         String D3 = "D3";
@@ -1116,14 +1192,13 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         String F3 = "F3";
         String F4 = "F4";
         //rowsMain.put(menuA, new String[]{A1, A2, A3, A4});
-        String menuANazwyTab[] = new String[klasy.size() + 1];
-        String menuBNazwyTab[] = new String[przedmiotyNauczania.size() + 1];
-        String menuCNazwyTab[] = new String[nauczyciele.size() + 1];
+        String[] menuANazwyTab = new String[klasy.size() + 1];
         for (Klasa klasa : klasy) {
             menuANazwyTab[klasy.indexOf(klasa)] = "Klasa nr " + klasa.getNazwaKlasy();
         }
         menuANazwyTab[menuANazwyTab.length - 1] = "Spis ";
         ArrayList<String> nazwyPrzedmiotow = new ArrayList<String>();
+        String[] menuBNazwyTab = new String[przedmiotyNauczania.size() + 1];
         for (PrzedmiotNauczania przedmiotNauczania : przedmiotyNauczania) {
             nazwyPrzedmiotow.add(przedmiotNauczania.getPrzedmiotNauczania());
         }
@@ -1133,6 +1208,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         }
         menuBNazwyTab[menuBNazwyTab.length - 1] = "Spis ";
         ArrayList<String> nazwyNauczycieli = new ArrayList<String>();
+        String[] menuCNazwyTab = new String[nauczyciele.size() + 1];
         for (Nauczyciel nauczyciel : nauczyciele) {
             nazwyNauczycieli.add(nauczyciel.getImie() + " " + nauczyciel.getNazwisko());
         }
@@ -1141,10 +1217,12 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             menuCNazwyTab[i] = nazwyNauczycieli.get(i);
         }
         menuCNazwyTab[menuCNazwyTab.length - 1] = "Spis ";
+        String[] menuDNazwyTab = new String[1];
+        menuDNazwyTab[0] = "Alfabetyczny spis uczniów";
         rowsMain.put(menuA, menuANazwyTab);
         rowsMain.put(menuB, menuBNazwyTab);
         rowsMain.put(menuC, menuCNazwyTab);
-        rowsMain.put(menuD, new String[]{D1, D2, D3, D4});
+        rowsMain.put(menuD, menuDNazwyTab);
         rowsMain.put(menuE, new String[]{E1, E2, E3, E4});
         rowsMain.put(menuF, new String[]{F1, F2, F3, F4});
         //rows1.put(A1, new String[]{"A1_1", "A1_2", "A1_3"});
@@ -1176,11 +1254,17 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     subMenu11.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            selectedRow = 0;
-                            selectedColumn = 0;
                             panelMain.removeAll();
+                            box2 = new Box(BoxLayout.X_AXIS);
+                            box3 = new Box(BoxLayout.Y_AXIS);
+                            selectedColumn = -1;
+                            selectedRow = -1;
                             //headTable2 = new JLabel("");
                             if (m.equals(menuA)) {
+                                box3.add(new JLabel(" "));
+                                box3.add(new JLabel(" "));
+                                box3.add(new JLabel(" "));
+                                box2.add(box3);
                                 scrolPanelMain.setViewportView(createPanelKlasy(m1.replaceAll("Klasa nr ", "")));
                             }
                             if (m.equals(menuB)) {
@@ -1189,8 +1273,14 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                             if (m.equals(menuC)) {
                                 scrolPanelMain.setViewportView(createPanelNauczyciele(m1));
                             }
-
-                            if (!m.equals(menuA) && !m.equals(menuB) && !m.equals(menuC)) {
+                            if (m.equals(menuD)) {
+                                box3.add(new JLabel(" "));
+                                box3.add(new JLabel(" "));
+                                box3.add(new JLabel(" "));
+                                box2.add(box3);
+                                scrolPanelMain.setViewportView(createPanelUczniowie(m1));
+                            }
+                            if (!m.equals(menuA) && !m.equals(menuB) && !m.equals(menuC) && !m.equals(menuD)) {
                                 panelMain.add(ButtonActPerfor("RED " + m + " / " + m1));
                                 panelMain.setBackground(Color.BLACK);
                                 panelMain.setBackground(Color.BLUE);
@@ -1218,8 +1308,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                 columnNames[3 + j] = listaNazwZajecKlasy(nazwaKlasy).get(j) + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaZajecKlasy(nazwaKlasy).get(j).getIdNauczyciela() - 1).getNazwisko();
             }
 
-
-            JTable table3 = new JTable(new TableModel() {
+            JTable tableSpisOcenKlasy = new JTable(new TableModel() {
                 @Override
                 public int getRowCount() {
                     return listaUczniKlasy(nazwaKlasy).size() + 1;
@@ -1237,7 +1326,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
                 @Override
                 public Class<?> getColumnClass(int columnIndex) {
-                    return getClass();
+                    return getValueAt(0, columnIndex).getClass();
                 }
 
                 @Override
@@ -1287,388 +1376,79 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                 public void removeTableModelListener(TableModelListener l) {
 
                 }
-
-                
-            }, new TableColumnModel() {
-                @Override
-                public void addColumn(TableColumn aColumn) {
-                    this.addColumn(aColumn);
-                }
-
-                @Override
-                public void removeColumn(TableColumn column) {
-
-                }
-
-                @Override
-                public void moveColumn(int columnIndex, int newIndex) {
-
-                }
-
-                @Override
-                public void setColumnMargin(int newMargin) {
-
-                }
-
-                @Override
-                public int getColumnCount() {
-                    return 3 + listaNazwZajecKlasy(nazwaKlasy).size();
-                }
-
-                @Override
-                public Enumeration<TableColumn> getColumns() {
-                    Vector<TableColumn> v = new Vector<>(getColumnCount());
-                    for (int i = 0; i < getColumnCount(); i++) {
-                        v.addElement(getColumn(i));
-                    }
-                    Enumeration<TableColumn> e = v.elements();
-                    return new Enumeration<TableColumn>() {
-
-                        @Override
-                        public boolean hasMoreElements() {
-                            return e.hasMoreElements();
-                        }
-
-                        @Override
-                        public TableColumn nextElement() {
-                            return e.nextElement();
-                        }
-                    };
-                }
-
-                @Override
-                public int getColumnIndex(Object columnIdentifier) {
-                    int columnId = 0;
-                    for (int i = 0; i < columnNames.length; i++) {
-                        if (columnIdentifier.equals(columnNames[i])) {
-                            columnId = i;
-                        }
-                    }
-                    return 0;
-                }
-
-                @Override
-                public TableColumn getColumn(int columnIndex) {
-                    columna = columnIndex;
-                    JLabel columnLabel = new JLabel(columnNames[columnIndex]);
-                    return new TableColumn(2, 30, new TableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            //column = 2;
-                            System.out.println("columnIndex " + columna);
-                            System.out.println("column " + column);
-                            System.out.println("row " + row);
-                            JLabel newL = new JLabel();
-                            String rowTemp = "";
-                            if (value != null) {
-                                rowTemp = value.toString();
-                            }
+            });
+            for (int i = 0; i < tableSpisOcenKlasy.getColumnCount(); i++) {
+                tableSpisOcenKlasy.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
+                    @Override
+                    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                        JLabel newL = new JLabel();
+                        String rowTemp = "";
+                        if (tableSpisOcenKlasy.getValueAt(row, column) != null) {
+                            rowTemp = tableSpisOcenKlasy.getValueAt(row, column).toString();
                             if (row == selectedRow && column == selectedColumn) {
                                 newL.setText(rowTemp);
-                                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+                                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                                 newL.setForeground(Color.RED);
-                                return newL;
+                                newL.setBackground(Color.yellow);
+                                newL.setOpaque(true);
                             } else {
-                                newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
-                                if (row == table.getRowCount() - 1) {
-                                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+                                newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+                                if (row == tableSpisOcenKlasy.getRowCount() - 1) {
+                                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+                                    newL.setBackground(Color.LIGHT_GRAY);
+                                    newL.setOpaque(true);
                                 }
                                 if (column >= 0 && column <= 2) {
-                                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+                                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                                 }
                                 newL.setText(rowTemp);
-                                System.out.println(newL.getText());
-                                return newL;
                             }
                         }
-                    }, new TableCellEditor() {
-                        @Override
-                        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                            return null;
-                        }
-
-                        @Override
-                        public Object getCellEditorValue() {
-                            return null;
-                        }
-
-                        @Override
-                        public boolean isCellEditable(EventObject anEvent) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean shouldSelectCell(EventObject anEvent) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean stopCellEditing() {
-                            return false;
-                        }
-
-                        @Override
-                        public void cancelCellEditing() {
-
-                        }
-
-                        @Override
-                        public void addCellEditorListener(CellEditorListener l) {
-
-                        }
-
-                        @Override
-                        public void removeCellEditorListener(CellEditorListener l) {
-
-                        }
-                    });
-                }
-
-                @Override
-                public int getColumnMargin() {
-                    return 0;
-                }
-
-                @Override
-                public int getColumnIndexAtX(int xPosition) {
-                    return 0;
-                }
-
-                @Override
-                public int getTotalColumnWidth() {
-                    int totalHeaderTableWidth = 0;
-                    for (int i = 0; i < columnNames.length; i++) {
-                        JLabel columnLabel = new JLabel(columnNames[i]);
-                        totalHeaderTableWidth = totalHeaderTableWidth + columnLabel.getPreferredSize().width + 10;
+                        return newL;
                     }
-                    return totalHeaderTableWidth;
-                }
-
-                @Override
-                public void setColumnSelectionAllowed(boolean flag) {
-
-                }
-
-                @Override
-                public boolean getColumnSelectionAllowed() {
-                    return false;
-                }
-
-                @Override
-                public int[] getSelectedColumns() {
-                    return new int[0];
-                }
-
-                @Override
-                public int getSelectedColumnCount() {
-                    return 0;
-                }
-
-                @Override
-                public void setSelectionModel(ListSelectionModel newModel) {
-
-                }
-
-                @Override
-                public ListSelectionModel getSelectionModel() {
-                    return new ListSelectionModel() {
-                        @Override
-                        public void setSelectionInterval(int index0, int index1) {
-
-                        }
-
-                        @Override
-                        public void addSelectionInterval(int index0, int index1) {
-
-                        }
-
-                        @Override
-                        public void removeSelectionInterval(int index0, int index1) {
-
-                        }
-
-                        @Override
-                        public int getMinSelectionIndex() {
-                            return 0;
-                        }
-
-                        @Override
-                        public int getMaxSelectionIndex() {
-                            return 0;
-                        }
-
-                        @Override
-                        public boolean isSelectedIndex(int index) {
-                            return false;
-                        }
-
-                        @Override
-                        public int getAnchorSelectionIndex() {
-                            return 0;
-                        }
-
-                        @Override
-                        public void setAnchorSelectionIndex(int index) {
-
-                        }
-
-                        @Override
-                        public int getLeadSelectionIndex() {
-                            return 0;
-                        }
-
-                        @Override
-                        public void setLeadSelectionIndex(int index) {
-
-                        }
-
-                        @Override
-                        public void clearSelection() {
-
-                        }
-
-                        @Override
-                        public boolean isSelectionEmpty() {
-                            return false;
-                        }
-
-                        @Override
-                        public void insertIndexInterval(int index, int length, boolean before) {
-
-                        }
-
-                        @Override
-                        public void removeIndexInterval(int index0, int index1) {
-
-                        }
-
-                        @Override
-                        public void setValueIsAdjusting(boolean valueIsAdjusting) {
-
-                        }
-
-                        @Override
-                        public boolean getValueIsAdjusting() {
-                            return false;
-                        }
-
-                        @Override
-                        public void setSelectionMode(int selectionMode) {
-
-                        }
-
-                        @Override
-                        public int getSelectionMode() {
-                            return 0;
-                        }
-
-                        @Override
-                        public void addListSelectionListener(ListSelectionListener x) {
-
-                        }
-
-                        @Override
-                        public void removeListSelectionListener(ListSelectionListener x) {
-
-                        }
-                    };
-                }
-
-                @Override
-                public void addColumnModelListener(TableColumnModelListener x) {
-
-                }
-
-                @Override
-                public void removeColumnModelListener(TableColumnModelListener x) {
-
-                }
-            });
-
-            //System.out.println("1: " + table3.getColumnCount());
-            //System.out.println("2 " + table3.getRowCount());
-            //System.out.println("3 " + table3.getValueAt(1, 1));
-            //System.out.println("4 " + table1.getTableHeader());
-
-
-            //for (int i = 0; i < table3.getColumnCount(); i++) {
-            //    table3.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
-            //        @Override
-            //        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            //            JLabel newL = new JLabel();
-            //            String rowTemp = "";
-            //            if (table3.getValueAt(row, column) != null) {
-            //                rowTemp = table3.getValueAt(row, column).toString();
-            //            }
-            //            if (row == selectedRow && column == selectedColumn) {
-            //                newL.setText(rowTemp);
-            //                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-            //                newL.setForeground(Color.RED);
-            //                return newL;
-            //            } else {
-            //                newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
-            //                if (row == table3.getRowCount() - 1) {
-            //                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-            //                }
-            //                if (column >= 0 && column <= 2) {
-            //                    newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
-            //                }
-            //                newL.setText(rowTemp);
-            //                System.out.println(newL.getText());
-            //                return newL;
-            //            }
-            //        }
-            //    });
-            //}
-
-
+                });
+            }
             int totalHeaderTableWidth = 0;
             for (int i = 0; i < columnNames.length; i++) {
-                JLabel columnLabel = new JLabel(columnNames[i]);
-                table3.getColumn(columnNames[i]).setPreferredWidth(columnLabel.getPreferredSize().width + 10);
-                totalHeaderTableWidth = totalHeaderTableWidth + columnLabel.getPreferredSize().width + 10;
+                JLabel label = new JLabel(columnNames[i]);
+                tableSpisOcenKlasy.getColumn(columnNames[i]).setPreferredWidth(label.getPreferredSize().width + 10);
+                totalHeaderTableWidth = totalHeaderTableWidth + label.getPreferredSize().width + 10;
             }
-            System.out.println(totalHeaderTableWidth);
-            table1 = table3;
+            tableSpisOcenKlasy.setRowHeight(20);
 
             JLabel headTable1 = new JLabel("KLASA nr " + nazwaKlasy + " - spis ocen");
             headTable1.setFont(new Font(null, Font.BOLD, 14));
             headTable1.setAlignmentX(CENTER_ALIGNMENT);
             Box boxMain = new Box(BoxLayout.Y_AXIS);
-            boxMain.setPreferredSize(new Dimension(totalHeaderTableWidth, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.setPreferredSize(new Dimension(totalHeaderTableWidth, (headTable1.getPreferredSize().height + tableSpisOcenKlasy.getTableHeader().getPreferredSize().height + tableSpisOcenKlasy.getPreferredSize().height) + box2.getPreferredSize().height));
             boxMain.add(headTable1);
-            boxMain.add(table1.getTableHeader());
-            boxMain.add(table1);
+            boxMain.add(tableSpisOcenKlasy.getTableHeader());
+            boxMain.add(tableSpisOcenKlasy);
             boxMain.add(Box.createGlue());
             boxMain.add(box2);
-            //boxMain.setVisible(true);
-            JScrollPane scrollBox = new JScrollPane(table3);
-            //scrollBox.setVisible(true);
+            JScrollPane scrollBox = new JScrollPane(boxMain);
             panelKlasy.add(scrollBox);
             panelKlasy.setSize(widthScreen, heightScreen);
             panelKlasy.setBackground(Color.BLUE);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
 
-            table1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            tableSpisOcenKlasy.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
-                    //table1.setSelectionBackground(Color.red);
-
-                    if (table1.getSelectedRow() >= 0 && table1.getSelectedRow() < listaUczniKlasy(nazwaKlasy).size() && table1.getSelectedColumn() > 2 && table1.getSelectedColumn() < listaZajecKlasy(nazwaKlasy).size() + 3) {
-                        if (table1.getSelectedColumn() > -1 && table1.getSelectedRow() > -1) {
-                            selectedColumn = table1.getSelectedColumn();
-                            selectedRow = table1.getSelectedRow();
+                    box2 = new Box(BoxLayout.X_AXIS);
+                    box3 = new Box(BoxLayout.Y_AXIS);
+                    if (tableSpisOcenKlasy.getSelectedRow() >= 0 && tableSpisOcenKlasy.getSelectedRow() < listaUczniKlasy(nazwaKlasy).size() && tableSpisOcenKlasy.getSelectedColumn() > 2 && tableSpisOcenKlasy.getSelectedColumn() < listaZajecKlasy(nazwaKlasy).size() + 3) {
+                        if (tableSpisOcenKlasy.getSelectedColumn() > -1 && tableSpisOcenKlasy.getSelectedRow() > -1) {
+                            selectedColumn = tableSpisOcenKlasy.getSelectedColumn();
+                            selectedRow = tableSpisOcenKlasy.getSelectedRow();
                         }
-                        int idWybranyUczen = listaUczniKlasy(nazwaKlasy).get(table1.getSelectedRow()).getidUcznia();
-                        int idWybraneZajecie = listaZajecKlasy(nazwaKlasy).get(table1.getSelectedColumn() - 3).getIdZajecie();
+                        int idWybranyUczen = listaUczniKlasy(nazwaKlasy).get(tableSpisOcenKlasy.getSelectedRow()).getidUcznia();
+                        int idWybraneZajecie = listaZajecKlasy(nazwaKlasy).get(tableSpisOcenKlasy.getSelectedColumn() - 3).getIdZajecie();
                         String imieWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getImie();
                         String nazwiskoWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getNazwisko();
                         String nazwaWybranyPrzedmiot = przedmiotyNauczania.get(zajecia.get(idWybraneZajecie - 1).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania();
                         String namePupilSubject = idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen + " - " + nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko();
-                        box2 = new Box(BoxLayout.X_AXIS);
-                        box3 = new Box(BoxLayout.Y_AXIS);
-                        box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen));
+
+                        box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen)).setFont(new Font(null, Font.BOLD, 16));
                         box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
                         box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
                         box2.add(box3);
@@ -1684,7 +1464,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                     zapiszDoPlikuOcenyUczniow();
                                     box2 = new Box(BoxLayout.X_AXIS);
                                     box3 = new Box(BoxLayout.Y_AXIS);
-                                    box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen));
+                                    box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen)).setFont(new Font(null, Font.BOLD, 16));
                                     box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
                                     box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
                                     box2.add(box3);
@@ -1695,10 +1475,12 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                             }
                         });
                     } else {
-                        box2 = new Box(BoxLayout.X_AXIS);
-                        box3 = new Box(BoxLayout.Y_AXIS);
-                        //headTable2 = new JLabel("");
-                        box2.add(new JLabel(""));
+                        box3.add(new JLabel(" "));
+                        box3.add(new JLabel(" "));
+                        box3.add(new JLabel(" "));
+                        box2.add(box3);
+                        selectedColumn = -1;
+                        selectedRow = -1;
                     }
                     createPanelKlasy(nazwaKlasy);
                 }
@@ -1709,25 +1491,25 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             columnNames[1] = "Przedmioty";
             columnNames[2] = "Śrenia ocen";
 
-            table1 = new JTable(new Object[klasy.size()][3], columnNames);
+            JTable tableSpisOcen = new JTable(new Object[klasy.size()][3], columnNames);
             for (int lo = 0; lo <= klasy.size() - 1; lo++) {
-                table1.setValueAt(klasy.get(lo).getNazwaKlasy(), lo, 0);
-                table1.setValueAt(listaNazwZajecKlasy(klasy.get(lo).getNazwaKlasy()), lo, 1);
-                table1.setValueAt(sredniaOcenKlasy(klasy.get(lo).getNazwaKlasy()), lo, 2);
+                tableSpisOcen.setValueAt(klasy.get(lo).getNazwaKlasy(), lo, 0);
+                tableSpisOcen.setValueAt(listaNazwZajecKlasy(klasy.get(lo).getNazwaKlasy()), lo, 1);
+                tableSpisOcen.setValueAt(sredniaOcenKlasy(klasy.get(lo).getNazwaKlasy()), lo, 2);
             }
-            table1.setAutoCreateRowSorter(false);
-            //table1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            table1.getColumn(columnNames[0]).setPreferredWidth(2);
-            table1.getColumn(columnNames[1]).setPreferredWidth(800);
-            table1.getColumn(columnNames[2]).setPreferredWidth(10);
+            tableSpisOcen.setAutoCreateRowSorter(false);
+            //tableSpisOcen.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            tableSpisOcen.getColumn(columnNames[0]).setPreferredWidth(2);
+            tableSpisOcen.getColumn(columnNames[1]).setPreferredWidth(800);
+            tableSpisOcen.getColumn(columnNames[2]).setPreferredWidth(10);
             JLabel headTable1 = new JLabel("Spis klas " + NAZWA_SZKOLY);
             headTable1.setFont(new Font(null, Font.BOLD, 14));
             headTable1.setAlignmentX(CENTER_ALIGNMENT);
             Box boxMain = new Box(BoxLayout.Y_AXIS);
-            boxMain.setPreferredSize(new Dimension(1000, (table1.getRowCount() + 6) * table1.getRowHeight()));
+            boxMain.setPreferredSize(new Dimension(1000, (tableSpisOcen.getRowCount() + 6) * tableSpisOcen.getRowHeight()));
             boxMain.add(headTable1);
-            boxMain.add(table1.getTableHeader());
-            boxMain.add(table1);
+            boxMain.add(tableSpisOcen.getTableHeader());
+            boxMain.add(tableSpisOcen);
             JScrollPane scrollBox = new JScrollPane(boxMain);
             panelKlasy.add(scrollBox);
             panelKlasy.setSize(widthScreen, heightScreen);
@@ -1746,7 +1528,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             columnNames[3] = "Id zajęcia";
             columnNames[4] = "Zajęcie w klasie";
             columnNames[5] = "Średnia ocen";
-            table1 = new JTable(new Object[listaZajecPrzedmiotu(nazwaPrzedmiotu).size()][6], columnNames);
+            JTable table1 = new JTable(new Object[listaZajecPrzedmiotu(nazwaPrzedmiotu).size()][6], columnNames);
             for (int lo = 0; lo <= listaZajecPrzedmiotu(nazwaPrzedmiotu).size() - 1; lo++) {
                 table1.setValueAt(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela(), lo, 0);
                 table1.setValueAt(nauczyciele.get(listaZajecPrzedmiotu(nazwaPrzedmiotu).get(lo).getIdNauczyciela() - 1).getImie(), lo, 1);
@@ -1757,8 +1539,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             }
             table1.setSelectionForeground(Color.BLUE);
             table1.setAutoCreateRowSorter(false);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
             JLabel headTable1 = new JLabel("Lista zajęć przedmiotu: " + nazwaPrzedmiotu);
             headTable1.setFont(new Font(null, Font.BOLD, 14));
             headTable1.setAlignmentX(CENTER_ALIGNMENT);
@@ -1767,7 +1547,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             boxMain.add(headTable1);
             boxMain.add(table1.getTableHeader());
             boxMain.add(table1);
-            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie");
+            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie przedmiotu " + nazwaPrzedmiotu);
             box2.add(Box.createGlue());
             box2.add(buttonNewAactivity);
             boxMain.add(box2);
@@ -1789,8 +1569,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             panelPrzedmioty.add(scrollBox);
             panelPrzedmioty.setSize(widthScreen, heightScreen);
             panelPrzedmioty.setBackground(Color.BLUE);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
         } else {
             String[] columnNames = new String[4];
             columnNames[0] = "Przedmiot";
@@ -1818,7 +1596,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     nazwyKlasWszystkichNauczycieli.add(new ArrayList<String>());
                 }
             }
-            table1 = new JTable(new Object[nazwyPrzedmiotowWszystkichNauczycieli.size()][4], columnNames);
+            JTable table1 = new JTable(new Object[nazwyPrzedmiotowWszystkichNauczycieli.size()][4], columnNames);
             for (int lo = 0; lo <= nazwyPrzedmiotowWszystkichNauczycieli.size() - 1; lo++) {
                 table1.setValueAt(nazwyPrzedmiotowWszystkichNauczycieli.get(lo), lo, 0);
                 table1.setValueAt(nauczycieleWszystkichPrzedmiotow.get(lo), lo, 1);
@@ -1858,23 +1636,19 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             panelPrzedmioty.add(scrollBox);
             panelPrzedmioty.setSize(widthScreen, heightScreen);
             panelPrzedmioty.setBackground(Color.BLUE);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
         }
         return panelPrzedmioty;
     }
 
     private static JPanel createPanelNauczyciele(String imieINazwiskoNauczyciela) {
         panelNauczyciele.removeAll();
-        box2 = new Box(BoxLayout.X_AXIS);
-        box3 = new Box(BoxLayout.Y_AXIS);
         if (!imieINazwiskoNauczyciela.equals("Spis ")) {
             String[] columnNames = new String[4];
             columnNames[0] = "ID zajęcia";
             columnNames[1] = "Nazwa przedmiotu";
             columnNames[2] = "Klasa";
             columnNames[3] = "Średnia ocen";
-            table1 = new JTable(new Object[listaZajecNauczyciela(imieINazwiskoNauczyciela).size()][4], columnNames);
+            JTable table1 = new JTable(new Object[listaZajecNauczyciela(imieINazwiskoNauczyciela).size()][4], columnNames);
             for (int lo = 0; lo <= listaZajecNauczyciela(imieINazwiskoNauczyciela).size() - 1; lo++) {
                 table1.setValueAt(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdZajecie(), lo, 0);
                 table1.setValueAt(przedmiotyNauczania.get(listaZajecNauczyciela(imieINazwiskoNauczyciela).get(lo).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania(), lo, 1);
@@ -1883,8 +1657,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             }
             table1.setSelectionForeground(Color.BLUE);
             table1.setAutoCreateRowSorter(false);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
             JLabel headTable1 = new JLabel("Lista zajęć nauczyciela: " + imieINazwiskoNauczyciela);
             headTable1.setFont(new Font(null, Font.BOLD, 14));
             headTable1.setAlignmentX(CENTER_ALIGNMENT);
@@ -1893,7 +1665,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             boxMain.add(headTable1);
             boxMain.add(table1.getTableHeader());
             boxMain.add(table1);
-            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie");
+            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie nauczyciela " + imieINazwiskoNauczyciela);
             box2.add(Box.createGlue());
             box2.add(buttonNewAactivity);
             boxMain.add(box2);
@@ -1915,8 +1687,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             panelNauczyciele.add(scrollBox);
             panelNauczyciele.setSize(widthScreen, heightScreen);
             panelNauczyciele.setBackground(Color.BLUE);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
         } else {
             String[] columnNames = new String[4];
             columnNames[0] = "Nauczyciel";
@@ -1944,7 +1714,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     nazwyKlasWszystkichNauczycieli.add(new ArrayList<String>());
                 }
             }
-            table1 = new JTable(new Object[nauczycieleWszystkichPrzedmiotow.size()][4], columnNames);
+            JTable table1 = new JTable(new Object[nauczycieleWszystkichPrzedmiotow.size()][4], columnNames);
             for (int lo = 0; lo <= nauczycieleWszystkichPrzedmiotow.size() - 1; lo++) {
                 table1.setValueAt(nauczycieleWszystkichPrzedmiotow.get(lo), lo, 0);
                 table1.setValueAt(nazwyPrzemiotowNauczania.get(lo), lo, 1);
@@ -1986,30 +1756,248 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             panelNauczyciele.add(scrollBox);
             panelNauczyciele.setSize(widthScreen, heightScreen);
             panelNauczyciele.setBackground(Color.BLUE);
-            box2 = new Box(BoxLayout.X_AXIS);
-            box3 = new Box(BoxLayout.Y_AXIS);
-
         }
         return panelNauczyciele;
     }
 
-    private static JPanel createPanel1() {
-        panel1.add(ButtonActPerfor("Start"));
-        return panel1;
+    private static JPanel createPanelUczniowie(String spisUczniow) {
+        panelUczniowie.removeAll();
+        panelUczniowie.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        if (spisUczniow.equals("Alfabetyczny spis uczniów")) {
+            String[] columnNames = new String[5];
+            columnNames[0] = "Imię ucznia";
+            columnNames[1] = "Nazwisko ucznia";
+            columnNames[2] = "ID ucznia";
+            columnNames[3] = "Klasa";
+            columnNames[4] = "Średnia ocen";
+            JTable tableSpisUcziow = new JTable(new TableModel() {
+                @Override
+                public int getRowCount() {
+                    return uczniowieSzkoly.size();
+                }
+
+                @Override
+                public int getColumnCount() {
+                    return columnNames.length;
+                }
+
+                @Override
+                public String getColumnName(int columnIndex) {
+                    return columnNames[columnIndex];
+                }
+
+                @Override
+                public Class<?> getColumnClass(int columnIndex) {
+                    return getValueAt(0, columnIndex).getClass();
+                }
+
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return false;
+                }
+
+                @Override
+                public Object getValueAt(int rowIndex, int columnIndex) {
+                    Object newValueCell = null;
+                    if (rowIndex > -1) {
+                        if (columnIndex == 0) {
+                            newValueCell = uczniowieSzkolySpisAlfabet.get(rowIndex).getImie();
+                        }
+                        if (columnIndex == 1) {
+                            newValueCell = uczniowieSzkolySpisAlfabet.get(rowIndex).getNazwisko();
+                        }
+                        if (columnIndex == 2) {
+                            newValueCell = uczniowieSzkolySpisAlfabet.get(rowIndex).getidUcznia();
+                        }
+                        if (columnIndex == 3) {
+                            newValueCell = podajNazweKlasyUczniaId(uczniowieSzkolySpisAlfabet.get(rowIndex).getidUcznia());
+                        }
+                        if (columnIndex == 4) {
+                            if (sredniaWszystkichOcenUczniaId(uczniowieSzkolySpisAlfabet.get(rowIndex).getidUcznia()) > -1) {
+                                newValueCell = sredniaWszystkichOcenUczniaId(uczniowieSzkolySpisAlfabet.get(rowIndex).getidUcznia());
+                            }
+                        }
+                    }
+                    return newValueCell;
+                }
+
+                @Override
+                public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+
+                }
+
+                @Override
+                public void addTableModelListener(TableModelListener l) {
+
+                }
+
+                @Override
+                public void removeTableModelListener(TableModelListener l) {
+
+                }
+            });
+
+            int totalHeaderTableWidth = 0;
+            for (int i = 0; i < columnNames.length; i++) {
+                JLabel label = new JLabel(columnNames[i]);
+                tableSpisUcziow.getColumn(columnNames[i]).setPreferredWidth(label.getPreferredSize().width + 10);
+                totalHeaderTableWidth = totalHeaderTableWidth + label.getPreferredSize().width + 10;
+            }
+            tableSpisUcziow.setRowHeight(20);
+
+            JLabel headTable1 = new JLabel("Alfabetyczny spis uczniów " + NAZWA_SZKOLY);
+            headTable1.setFont(new Font(null, Font.BOLD, 14));
+            headTable1.setAlignmentX(CENTER_ALIGNMENT);
+            Box boxMain = new Box(BoxLayout.Y_AXIS);
+            //boxMain.setPreferredSize(new Dimension(totalHeaderTableWidth, (Toolkit.getDefaultToolkit().getScreenSize().height) - 100));
+            boxMain.add(headTable1);
+            boxMain.add(tableSpisUcziow.getTableHeader());
+            boxMain.add(tableSpisUcziow);
+            boxMain.add(Box.createGlue());
+            boxMain.add(box2);
+            JScrollPane scrollBox = new JScrollPane(boxMain);
+            scrollBox.setPreferredSize(new Dimension(totalHeaderTableWidth + 20, (Toolkit.getDefaultToolkit().getScreenSize().height) - 100));
+            panelUczniowie.add(scrollBox);
+            panelUczniowie.setSize(widthScreen, heightScreen);
+            panelUczniowie.setBackground(Color.BLUE);
+            JPanel paneSub = new JPanel();
+            JFrame frameSub = new JFrame();
+            frameSub.setVisible(false);
+            frameSub.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frameSub.setFocusableWindowState(false);
+            for (int i = 0; i < tableSpisUcziow.getColumnCount(); i++) {
+                tableSpisUcziow.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
+                    @Override
+                    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
+                        JLabel newL = new JLabel();
+                        String rowTemp = "";
+                        if (tableSpisUcziow.getValueAt(row, column) != null) {
+                            rowTemp = tableSpisUcziow.getValueAt(row, column).toString();
+                        }
+
+                        if (isSelected) {
+                            newL.setText(rowTemp);
+                            newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+                            newL.setForeground(Color.RED);
+                            newL.setBackground(Color.yellow);
+                            newL.setOpaque(true);
+                        } else {
+                            newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+                            if (column >= 0 && column <= 1) {
+                                newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+                            }
+                            newL.setText(rowTemp);
+                        }
+                        frameSub.setBounds(scrollBox.getLocationOnScreen().x + scrollBox.getWidth() + 2, scrollBox.getLocationOnScreen().y, 600, 300);
+                        if (isSelected && selectedRow != tableSpisUcziow.getSelectedRow()) {
+                            frameSub.getContentPane().removeAll();
+                            paneSub.removeAll();
+                            frameSub.setTitle(tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 0).toString() + " " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 1).toString());
+                            JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(tableSpisUcziow.getSelectedRow()).getidUcznia());
+                            paneSub.add(scrolDziennikUcznia);
+                            paneSub.setVisible(true);
+                            frameSub.getContentPane().add(scrolDziennikUcznia);
+                            selectedRow = tableSpisUcziow.getSelectedRow();
+                        }
+                        frameSub.revalidate();
+                        frameSub.setVisible(true);
+                        if (!frameSub.isDisplayable() && tableSpisUcziow.getSelectedRow() > -1) {
+                            selectedColumn = -1;
+                            selectedRow = -1;
+                            System.out.println("111");
+                            panelUczniowie.removeAll();
+                            frameSub.revalidate();
+                            createPanelUczniowie(spisUczniow);
+                        }
+                        return newL;
+                    }
+                });
+            }
+        }
+        return panelUczniowie;
     }
 
-    private static JPanel createPanel2() {
-        panel2.add(ButtonActPerfor("Panel2"));
-        return panel2;
-    }
+    private static JScrollPane dzienniczekUczniaId(int idUcznia) {
+        String[] columnNames = new String[6];
+        columnNames[0] = "Nazwa przedmiotu";
+        columnNames[1] = "Imię i mazwisko nauczyciela";
+        columnNames[2] = "ID zajędia";
+        columnNames[3] = "Klasa nr";
+        columnNames[4] = "Oceny z przedmiotu";
+        columnNames[5] = "Średnia ocen z przedmiotu";
 
-    private static JPanel createPanel3() {
+        JTable dzienniczekUcznia = new JTable(new TableModel() {
+            @Override
+            public int getRowCount() {
+                return listaAlfabetZajecUczniaId(idUcznia).size();
+            }
 
-        return panel3;
-    }
+            @Override
+            public int getColumnCount() {
+                return columnNames.length;
+            }
 
-    private static JPanel createPanel4() {
+            @Override
+            public String getColumnName(int columnIndex) {
+                return columnNames[columnIndex];
+            }
 
-        return panel4;
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (getValueAt(0, columnIndex) != null) {
+                    return getValueAt(0, columnIndex).getClass();
+                } else {
+                    return Object.class;
+                }
+            }
+
+            @Override
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return false;
+            }
+
+            @Override
+            public Object getValueAt(int rowIndex, int columnIndex) {
+                Object newValueCell = null;
+                if (columnIndex == 0) {
+                    newValueCell = przedmiotyNauczania.get(listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania();
+                }
+                if (columnIndex == 1) {
+                    newValueCell = nauczyciele.get(listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdNauczyciela() - 1).getNazwisko();
+                }
+                if (columnIndex == 2) {
+                    newValueCell = listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdZajecie();
+                }
+                if (columnIndex == 3) {
+                    newValueCell = podajNazweKlasyUczniaId(idUcznia);
+                }
+                if (columnIndex == 4) {
+                    newValueCell = listaOcenUczniaZZajec(idUcznia, listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdZajecie());
+                }
+                if (columnIndex == 5) {
+                    if (sredniaOcenUczniaZZajecId(idUcznia, listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdZajecie()) > -1) {
+                        newValueCell = sredniaOcenUczniaZZajecId(idUcznia, listaAlfabetZajecUczniaId(idUcznia).get(rowIndex).getIdZajecie());
+                    }
+                }
+                return newValueCell;
+            }
+
+            @Override
+            public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+
+            }
+
+            @Override
+            public void addTableModelListener(TableModelListener l) {
+
+            }
+
+            @Override
+            public void removeTableModelListener(TableModelListener l) {
+
+            }
+        });
+        return new JScrollPane(dzienniczekUcznia);
     }
 }
