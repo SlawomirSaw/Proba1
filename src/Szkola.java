@@ -1,12 +1,14 @@
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Scanner;
 
 public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serializable {
     private static DyrektorSzkoly dyrektorSzkoly = new DyrektorSzkoly("", "");
@@ -21,6 +23,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static int heightScreen = Toolkit.getDefaultToolkit().getScreenSize().height;
     private static int selectedColumn = -1;
     private static int selectedRow = -1;
+    private static int initialSelectedRow = -1;
     private static ArrayList<Uczen> uczniowieSzkoly = new ArrayList<Uczen>();
     private static ArrayList<Uczen> uczniowieSzkolySpisAlfabet = new ArrayList<Uczen>();
     private static ArrayList<Klasa> klasy = new ArrayList<Klasa>();
@@ -47,6 +50,8 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static JPanel panel3 = new JPanel();
     private static JPanel panel4 = new JPanel();
     private static JFrame mainFrame;
+    private static JPanel paneSub = new JPanel();
+    private static JFrame frameSub = new JFrame();
     private static JMenuBar menuBar;
     private static Box box2 = new Box(BoxLayout.X_AXIS);
     private static Box box3 = new Box(BoxLayout.Y_AXIS);
@@ -54,7 +59,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     public static void main(String[] args) {
         System.out.println("Nazwa Szkoły: " + NAZWA_SZKOLY);
         uczniowieSzkoly = odczytZPlikuUczniowieSzkoly();
-        uczniowieSzkolySpisAlfabet = listaAlfabetUczniowSzkoly();
+        uczniowieSzkolySpisAlfabet = podajListaAlfabetUczniowSzkoly();
         uczniowieSzkolyWgKlas = odczytZPlikuUczniowieSzkolyWgKlas();
         for (UczniowieKlasy uk : uczniowieSzkolyWgKlas) {
             if (!uk.getIdUczniowKlasy().isEmpty()) {
@@ -631,7 +636,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return listaZajecNauczyciela;
     }
 
-    private static ArrayList<Uczen> listaAlfabetUczniowSzkoly() {
+    private static ArrayList<Uczen> podajListaAlfabetUczniowSzkoly() {
         ArrayList<Uczen> listaAlfabetUczniowSzkoly = new ArrayList<Uczen>(uczniowieSzkoly);
         ArrayList<String> listaAlfabetNazwUczniowSzkoly = new ArrayList<String>();
         ArrayList<String> listaNazwiskUczniowSzkoly = new ArrayList<String>();
@@ -1145,8 +1150,8 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return nowyNauczyciel;
     }
 
-    private static JComboBox ComboBoxActPerfor() {
-        JComboBox box1 = new JComboBox();
+    private static JComboBox<String> ComboBoxActPerfor() {
+        JComboBox<String> box1 = new JComboBox<String>();
         box1.addItem("pos.1");
         box1.addItem("pos.2");
         box1.addActionListener(new ActionListener() {
@@ -1255,10 +1260,13 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             panelMain.removeAll();
+                            paneSub.removeAll();
+                            frameSub.getContentPane().removeAll();
+                            frameSub.setVisible(false);
                             box2 = new Box(BoxLayout.X_AXIS);
                             box3 = new Box(BoxLayout.Y_AXIS);
                             selectedColumn = -1;
-                            selectedRow = -1;
+                            //selectedRow = -1;
                             //headTable2 = new JLabel("");
                             if (m.equals(menuA)) {
                                 box3.add(new JLabel(" "));
@@ -1377,6 +1385,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
 
                 }
             });
+
             for (int i = 0; i < tableSpisOcenKlasy.getColumnCount(); i++) {
                 tableSpisOcenKlasy.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
                     @Override
@@ -1385,7 +1394,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                         String rowTemp = "";
                         if (tableSpisOcenKlasy.getValueAt(row, column) != null) {
                             rowTemp = tableSpisOcenKlasy.getValueAt(row, column).toString();
-                            if (row == selectedRow && column == selectedColumn) {
+                            if ((row == selectedRow && column == selectedColumn)) {
                                 newL.setText(rowTemp);
                                 newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                                 newL.setForeground(Color.RED);
@@ -1402,6 +1411,58 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                     newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                                 }
                                 newL.setText(rowTemp);
+                            }
+                            if (isSelected) {
+
+                                box2 = new Box(BoxLayout.X_AXIS);
+                                box3 = new Box(BoxLayout.Y_AXIS);
+                                if (tableSpisOcenKlasy.getSelectedRow() >= 0 && tableSpisOcenKlasy.getSelectedRow() < listaUczniKlasy(nazwaKlasy).size() && tableSpisOcenKlasy.getSelectedColumn() > 2 && tableSpisOcenKlasy.getSelectedColumn() < listaZajecKlasy(nazwaKlasy).size() + 3) {
+                                    if (tableSpisOcenKlasy.getSelectedColumn() > -1 && tableSpisOcenKlasy.getSelectedRow() > -1) {
+                                        selectedColumn = tableSpisOcenKlasy.getSelectedColumn();
+                                        selectedRow = tableSpisOcenKlasy.getSelectedRow();
+                                    }
+                                    int idWybranyUczen = listaUczniKlasy(nazwaKlasy).get(tableSpisOcenKlasy.getSelectedRow()).getidUcznia();
+                                    int idWybraneZajecie = listaZajecKlasy(nazwaKlasy).get(tableSpisOcenKlasy.getSelectedColumn() - 3).getIdZajecie();
+                                    String imieWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getImie();
+                                    String nazwiskoWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getNazwisko();
+                                    String nazwaWybranyPrzedmiot = przedmiotyNauczania.get(zajecia.get(idWybraneZajecie - 1).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania();
+                                    String namePupilSubject = idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen + " - " + nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko();
+
+                                    box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen)).setFont(new Font(null, Font.BOLD, 16));
+                                    box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
+                                    box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
+                                    box2.add(box3);
+                                    box2.add(Box.createGlue());
+                                    JButton buttonNewGrade = new JButton("Dodaj ocenę");
+                                    box2.add(buttonNewGrade);
+                                    buttonNewGrade.addActionListener(new ActionListener() {
+                                        @Override
+                                        public void actionPerformed(ActionEvent e) {
+                                            int newGrade = newGradeFor(namePupilSubject);
+                                            if (newGrade != -1) {
+                                                ocenyUczniow.add(new OcenaUcznia(idWybranyUczen, idWybraneZajecie, newGrade, LocalDateTime.now()));
+                                                zapiszDoPlikuOcenyUczniow();
+                                                box2 = new Box(BoxLayout.X_AXIS);
+                                                box3 = new Box(BoxLayout.Y_AXIS);
+                                                box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen)).setFont(new Font(null, Font.BOLD, 16));
+                                                box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
+                                                box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
+                                                box2.add(box3);
+                                                box2.add(Box.createGlue());
+                                                box2.add(buttonNewGrade);
+                                                createPanelKlasy(nazwaKlasy);
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    box3.add(new JLabel(" "));
+                                    box3.add(new JLabel(" "));
+                                    box3.add(new JLabel(" "));
+                                    box2.add(box3);
+                                    selectedColumn = -1;
+                                    selectedRow = -1;
+                                }
+                                createPanelKlasy(nazwaKlasy);
                             }
                         }
                         return newL;
@@ -1430,61 +1491,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             panelKlasy.add(scrollBox);
             panelKlasy.setSize(widthScreen, heightScreen);
             panelKlasy.setBackground(Color.BLUE);
-
-            tableSpisOcenKlasy.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-                @Override
-                public void valueChanged(ListSelectionEvent e) {
-                    box2 = new Box(BoxLayout.X_AXIS);
-                    box3 = new Box(BoxLayout.Y_AXIS);
-                    if (tableSpisOcenKlasy.getSelectedRow() >= 0 && tableSpisOcenKlasy.getSelectedRow() < listaUczniKlasy(nazwaKlasy).size() && tableSpisOcenKlasy.getSelectedColumn() > 2 && tableSpisOcenKlasy.getSelectedColumn() < listaZajecKlasy(nazwaKlasy).size() + 3) {
-                        if (tableSpisOcenKlasy.getSelectedColumn() > -1 && tableSpisOcenKlasy.getSelectedRow() > -1) {
-                            selectedColumn = tableSpisOcenKlasy.getSelectedColumn();
-                            selectedRow = tableSpisOcenKlasy.getSelectedRow();
-                        }
-                        int idWybranyUczen = listaUczniKlasy(nazwaKlasy).get(tableSpisOcenKlasy.getSelectedRow()).getidUcznia();
-                        int idWybraneZajecie = listaZajecKlasy(nazwaKlasy).get(tableSpisOcenKlasy.getSelectedColumn() - 3).getIdZajecie();
-                        String imieWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getImie();
-                        String nazwiskoWybranyUczen = uczniowieSzkoly.get(idWybranyUczen - 1).getNazwisko();
-                        String nazwaWybranyPrzedmiot = przedmiotyNauczania.get(zajecia.get(idWybraneZajecie - 1).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania();
-                        String namePupilSubject = idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen + " - " + nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko();
-
-                        box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen)).setFont(new Font(null, Font.BOLD, 16));
-                        box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
-                        box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
-                        box2.add(box3);
-                        box2.add(Box.createGlue());
-                        JButton buttonNewGrade = new JButton("Dodaj ocenę");
-                        box2.add(buttonNewGrade);
-                        buttonNewGrade.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                int newGrade = newGradeFor(namePupilSubject);
-                                if (newGrade != -1) {
-                                    ocenyUczniow.add(new OcenaUcznia(idWybranyUczen, idWybraneZajecie, newGrade, LocalDateTime.now()));
-                                    zapiszDoPlikuOcenyUczniow();
-                                    box2 = new Box(BoxLayout.X_AXIS);
-                                    box3 = new Box(BoxLayout.Y_AXIS);
-                                    box3.add(new JLabel(idWybranyUczen + ") " + imieWybranyUczen + " " + nazwiskoWybranyUczen)).setFont(new Font(null, Font.BOLD, 16));
-                                    box3.add(new JLabel(nazwaWybranyPrzedmiot + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(idWybraneZajecie - 1).getIdNauczyciela() - 1).getNazwisko()));
-                                    box3.add(new JLabel("Oceny: " + listaOcenUczniaZZajec(idWybranyUczen, idWybraneZajecie)));
-                                    box2.add(box3);
-                                    box2.add(Box.createGlue());
-                                    box2.add(buttonNewGrade);
-                                    createPanelKlasy(nazwaKlasy);
-                                }
-                            }
-                        });
-                    } else {
-                        box3.add(new JLabel(" "));
-                        box3.add(new JLabel(" "));
-                        box3.add(new JLabel(" "));
-                        box2.add(box3);
-                        selectedColumn = -1;
-                        selectedRow = -1;
-                    }
-                    createPanelKlasy(nazwaKlasy);
-                }
-            });
         } else {
             String[] columnNames = new String[3];
             columnNames[0] = "Klasa Nr";
@@ -1763,6 +1769,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static JPanel createPanelUczniowie(String spisUczniow) {
         panelUczniowie.removeAll();
         panelUczniowie.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        uczniowieSzkolySpisAlfabet = podajListaAlfabetUczniowSzkoly();
         if (spisUczniow.equals("Alfabetyczny spis uczniów")) {
             String[] columnNames = new String[5];
             columnNames[0] = "Imię ucznia";
@@ -1844,76 +1851,241 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                 totalHeaderTableWidth = totalHeaderTableWidth + label.getPreferredSize().width + 10;
             }
             tableSpisUcziow.setRowHeight(20);
-
             JLabel headTable1 = new JLabel("Alfabetyczny spis uczniów " + NAZWA_SZKOLY);
             headTable1.setFont(new Font(null, Font.BOLD, 14));
             headTable1.setAlignmentX(CENTER_ALIGNMENT);
             Box boxMain = new Box(BoxLayout.Y_AXIS);
-            //boxMain.setPreferredSize(new Dimension(totalHeaderTableWidth, (Toolkit.getDefaultToolkit().getScreenSize().height) - 100));
             boxMain.add(headTable1);
-            boxMain.add(tableSpisUcziow.getTableHeader());
-            boxMain.add(tableSpisUcziow);
+            JButton buttonNewPupil = new JButton();
+            buttonNewPupil.setText("Dodaj nowego ucznia");
+            box2.add(buttonNewPupil);
             boxMain.add(Box.createGlue());
             boxMain.add(box2);
+            boxMain.add(tableSpisUcziow.getTableHeader());
+            boxMain.add(tableSpisUcziow);
             JScrollPane scrollBox = new JScrollPane(boxMain);
             scrollBox.setPreferredSize(new Dimension(totalHeaderTableWidth + 20, (Toolkit.getDefaultToolkit().getScreenSize().height) - 100));
             panelUczniowie.add(scrollBox);
             panelUczniowie.setSize(widthScreen, heightScreen);
             panelUczniowie.setBackground(Color.BLUE);
-            JPanel paneSub = new JPanel();
-            JFrame frameSub = new JFrame();
+
             frameSub.setVisible(false);
             frameSub.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frameSub.setFocusableWindowState(false);
+            frameSub.setLocationRelativeTo(panelUczniowie);
+            frameSub.addHierarchyListener(new HierarchyListener() {
+                @Override
+                public void hierarchyChanged(HierarchyEvent e) {
+                    if (!frameSub.isDisplayable()) {
+                        selectedColumn = -1;
+                        selectedRow = -1;
+                        initialSelectedRow = -1;
+                        panelUczniowie.removeAll();
+                        box2 = new Box(BoxLayout.X_AXIS);
+                        box3 = new Box(BoxLayout.Y_AXIS);
+                        createPanelUczniowie(spisUczniow);
+                    }
+                }
+            });
+
+            panelUczniowie.addHierarchyListener(new HierarchyListener() {
+                @Override
+                public void hierarchyChanged(HierarchyEvent e) {
+                    if (!panelUczniowie.isDisplayable()) {
+                        if (initialSelectedRow == -1) {
+                            initialSelectedRow = selectedRow;
+                        }
+                    }
+                }
+            });
+
             for (int i = 0; i < tableSpisUcziow.getColumnCount(); i++) {
                 tableSpisUcziow.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
                     @Override
                     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
+                        if (row == initialSelectedRow && initialSelectedRow > -1) {
+                            isSelected = true;
+                        }
                         JLabel newL = new JLabel();
                         String rowTemp = "";
                         if (tableSpisUcziow.getValueAt(row, column) != null) {
                             rowTemp = tableSpisUcziow.getValueAt(row, column).toString();
                         }
-
                         if (isSelected) {
+                            if (column == 0 && initialSelectedRow > -1 && tableSpisUcziow.getSelectedRow() > -1) {
+                                initialSelectedRow = -1;
+                                tableSpisUcziow.revalidate();
+                                tableSpisUcziow.repaint();
+                            }
                             newL.setText(rowTemp);
                             newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                             newL.setForeground(Color.RED);
                             newL.setBackground(Color.yellow);
                             newL.setOpaque(true);
+
                         } else {
                             newL.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+                            newL.setText(rowTemp);
+                            newL.setForeground(Color.BLACK);
+                            newL.setBackground(Color.WHITE);
                             if (column >= 0 && column <= 1) {
                                 newL.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                             }
-                            newL.setText(rowTemp);
+                            newL.setOpaque(true);
                         }
-                        frameSub.setBounds(scrollBox.getLocationOnScreen().x + scrollBox.getWidth() + 2, scrollBox.getLocationOnScreen().y, 600, 300);
-                        if (isSelected && selectedRow != tableSpisUcziow.getSelectedRow()) {
-                            frameSub.getContentPane().removeAll();
-                            paneSub.removeAll();
-                            frameSub.setTitle(tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 0).toString() + " " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 1).toString());
-                            JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(tableSpisUcziow.getSelectedRow()).getidUcznia());
-                            paneSub.add(scrolDziennikUcznia);
-                            paneSub.setVisible(true);
-                            frameSub.getContentPane().add(scrolDziennikUcznia);
-                            selectedRow = tableSpisUcziow.getSelectedRow();
-                        }
-                        frameSub.revalidate();
-                        frameSub.setVisible(true);
-                        if (!frameSub.isDisplayable() && tableSpisUcziow.getSelectedRow() > -1) {
-                            selectedColumn = -1;
-                            selectedRow = -1;
-                            System.out.println("111");
-                            panelUczniowie.removeAll();
-                            frameSub.revalidate();
-                            createPanelUczniowie(spisUczniow);
+                        if (initialSelectedRow > -1) {
+                            if (isSelected && column == 0) {
+                                frameSub.getContentPane().removeAll();
+                                frameSub.setVisible(false);
+                                paneSub.removeAll();
+                                frameSub.setTitle(tableSpisUcziow.getValueAt(initialSelectedRow, 0).toString() + " " + tableSpisUcziow.getValueAt(initialSelectedRow, 1).toString());
+                                JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(initialSelectedRow).getidUcznia());
+                                paneSub.add(scrolDziennikUcznia);
+                                paneSub.setVisible(true);
+                                frameSub.getContentPane().add(scrolDziennikUcznia);
+                                selectedRow = initialSelectedRow;
+                                frameSub.setBounds(scrollBox.getLocationOnScreen().x + scrollBox.getWidth() + 2, scrollBox.getLocationOnScreen().y, 600, 300);
+                                frameSub.setVisible(true);
+                                frameSub.revalidate();
+                            }
+                            if (isSelected) {
+                                frameSub.setBounds(scrollBox.getLocationOnScreen().x + scrollBox.getWidth() + 2, scrollBox.getLocationOnScreen().y, 600, 300);
+                                frameSub.revalidate();
+                                frameSub.setVisible(true);
+                            }
+                        } else {
+                            if (isSelected && selectedRow != tableSpisUcziow.getSelectedRow()) {
+
+                                frameSub.getContentPane().removeAll();
+                                frameSub.setVisible(false);
+                                paneSub.removeAll();
+                                frameSub.setTitle(tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 0).toString() + " " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 1).toString());
+                                JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(tableSpisUcziow.getSelectedRow()).getidUcznia());
+                                paneSub.add(scrolDziennikUcznia);
+                                paneSub.setVisible(true);
+                                frameSub.getContentPane().add(scrolDziennikUcznia);
+                                selectedRow = tableSpisUcziow.getSelectedRow();
+                                frameSub.setVisible(true);
+                                frameSub.revalidate();
+                            }
+                            if (isSelected && selectedRow > -1) {
+                                frameSub.setBounds(scrollBox.getLocationOnScreen().x + scrollBox.getWidth() + 2, scrollBox.getLocationOnScreen().y, 600, 300);
+                                frameSub.setVisible(true);
+                                frameSub.revalidate();
+                            }
                         }
                         return newL;
                     }
                 });
             }
+
+            JScrollPane scrollPaneSub1 = new JScrollPane();
+            JPanel paneSub1 = new JPanel();
+            JFrame frameSub1 = new JFrame("Dodaj nowego ucznia");
+            frameSub1.setVisible(false);
+            frameSub1.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frameSub1.setFocusableWindowState(false);
+            buttonNewPupil.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    paneSub1.removeAll();
+                    paneSub1.setLayout(new GridLayout(5, 1));
+                    paneSub1.add(new JLabel("Imię"));
+                    JTextField wprowadzoneImie = new JTextField(20);
+                    paneSub1.add(wprowadzoneImie);
+                    paneSub1.add(new JLabel("Nazwisko"));
+                    JTextField wprowadzoneNazwisko = new JTextField(20);
+                    paneSub1.add(wprowadzoneNazwisko);
+                    paneSub1.add(new JLabel("Wybierz klasę nowego ucznia"));
+                    String[] nazwyKlas = new String[klasy.size()];
+                    for (int i = 0; i < klasy.size(); i++) {
+                        nazwyKlas[i] = klasy.get(i).getNazwaKlasy();
+                    }
+                    JComboBox<String> inputClassForNewPupil = new JComboBox<>(nazwyKlas);
+                    paneSub1.add(inputClassForNewPupil);
+                    JButton buttonOk = new JButton("OK");
+                    paneSub1.add(new JLabel());
+                    paneSub1.add(new JLabel());
+                    paneSub1.add(new JLabel());
+                    paneSub1.add(buttonOk);
+                    paneSub1.setVisible(true);
+                    buttonOk.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (!wprowadzoneImie.getText().equals("") && !wprowadzoneNazwisko.getText().equals("")) {
+                                uczniowieSzkoly.add(new Uczen(uczniowieSzkoly.size() + 1, wprowadzoneImie.getText(), wprowadzoneNazwisko.getText()));
+                                zapiszDoPlikuUczniowieSzkoly();
+                                ocenyUczniow.add(new OcenaUcznia(ocenyUczniow.size() + 1));
+                                zapiszDoPlikuOcenyUczniow();
+                                for (UczniowieKlasy u : uczniowieSzkolyWgKlas) {
+                                    if (u.getIdKlasy() == podajIdKlasy(inputClassForNewPupil.getSelectedItem().toString())) {
+                                        u.getIdUczniowKlasy().add(uczniowieSzkoly.size());
+                                    }
+                                }
+                                zapiszDoPlikuUczniowieSzkolyWgKlas();
+                            }
+                            frameSub1.getContentPane().removeAll();
+                            frameSub1.setVisible(false);
+                            selectedColumn = -1;
+                            selectedRow = -1;
+                            uczniowieSzkolySpisAlfabet = podajListaAlfabetUczniowSzkoly();
+                            for (Uczen u : uczniowieSzkolySpisAlfabet) {
+                                if (u.getidUcznia() == uczniowieSzkoly.size()) {
+                                    initialSelectedRow = uczniowieSzkolySpisAlfabet.indexOf(u);
+                                }
+                            }
+                            frameSub.getContentPane().removeAll();
+                            frameSub.setVisible(false);
+                            paneSub.removeAll();
+                            panelUczniowie.removeAll();
+                            box2 = new Box(BoxLayout.X_AXIS);
+                            box3 = new Box(BoxLayout.Y_AXIS);
+                            createPanelUczniowie(spisUczniow);
+                        }
+                    });
+
+                    wprowadzoneImie.addFocusListener(new FocusListener() {
+                        @Override
+                        public void focusGained(FocusEvent e) {
+                            wprowadzoneImie.setBackground(Color.YELLOW);
+                        }
+
+                        @Override
+                        public void focusLost(FocusEvent e) {
+                            wprowadzoneImie.setBackground(Color.white);
+                        }
+                    });
+                    wprowadzoneNazwisko.addFocusListener(new FocusListener() {
+                        @Override
+                        public void focusGained(FocusEvent e) {
+                            wprowadzoneNazwisko.setBackground(Color.YELLOW);
+                        }
+
+                        @Override
+                        public void focusLost(FocusEvent e) {
+                            wprowadzoneNazwisko.setBackground(Color.white);
+                        }
+                    });
+                    inputClassForNewPupil.addFocusListener(new FocusListener() {
+                        @Override
+                        public void focusGained(FocusEvent e) {
+                            inputClassForNewPupil.setBackground(Color.YELLOW);
+                        }
+
+                        @Override
+                        public void focusLost(FocusEvent e) {
+                            inputClassForNewPupil.setBackground(Color.white);
+                        }
+                    });
+                    frameSub1.getContentPane().add(paneSub1);
+                    frameSub1.setLocationRelativeTo(panelUczniowie);
+                    frameSub1.setBounds((widthScreen / 2) - 250, (heightScreen / 2) - 150, 500, 300);
+                    frameSub1.setLayout(new FlowLayout(FlowLayout.LEFT));
+                    frameSub1.setVisible(true);
+                    frameSub1.setFocusableWindowState(true);
+                }
+            });
+
         }
         return panelUczniowie;
     }
