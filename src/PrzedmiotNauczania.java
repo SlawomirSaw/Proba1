@@ -17,6 +17,4 @@ public class PrzedmiotNauczania implements Serializable {
         return przedmiotNauczania;
     }
 
-    //public PrzedmiotNauczania() {
-    //}
 }

@@ -32,6 +32,9 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static ArrayList<PrzedmiotNauczania> przedmiotyNauczania = new ArrayList<PrzedmiotNauczania>();
     private static ArrayList<Zajecie> zajecia = new ArrayList<Zajecie>();
     private static ArrayList<OcenaUcznia> ocenyUczniow = new ArrayList<OcenaUcznia>();
+    private static ArrayList<PlanZajec> planyZajec = new ArrayList<PlanZajec>();
+    private static ArrayList<PlanZajec> planyZajecPrevious = new ArrayList<PlanZajec>();
+    private static Boolean editSchedule = false;
     private static boolean tak = false;
     private static Scanner sc = new Scanner(System.in);
     private static String imie = "";
@@ -45,16 +48,13 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
     private static JPanel panelPrzedmioty = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panelNauczyciele = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private static JPanel panelUczniowie = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    private static JPanel panel1 = new JPanel();
-    private static JPanel panel2 = new JPanel();
-    private static JPanel panel3 = new JPanel();
-    private static JPanel panel4 = new JPanel();
     private static JFrame mainFrame;
     private static JPanel paneSub = new JPanel();
     private static JFrame frameSub = new JFrame();
     private static JMenuBar menuBar;
     private static Box box2 = new Box(BoxLayout.X_AXIS);
     private static Box box3 = new Box(BoxLayout.Y_AXIS);
+    private static Integer[][][] tablIdZajecPlanuPrevious = new Integer[klasy.size()][GODZINY_ROZPOCZECIA_ZAJEC.length][DNI_NAUKI_TYGODNIA_USTAWA.length];
 
     public static void main(String[] args) {
         System.out.println("Nazwa Szkoły: " + NAZWA_SZKOLY);
@@ -72,6 +72,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         zajecia = odczytZPlikuZajecia();
         ocenyUczniow = odczytZPlikuOcenyUczniow();
         iloscZajecWSzkole = zajecia.size();
+        planyZajec = odczytZPlikuPlanyZajec();
         mainFrame();
         int option = 0;
         do {
@@ -636,6 +637,28 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return listaZajecNauczyciela;
     }
 
+    private static ArrayList<Zajecie> listaZajecNauczycielaId(Integer idNauczyciela) {
+        ArrayList<Zajecie> listaZajecNauczycielaId = new ArrayList<Zajecie>();
+        for (int l = 0; l < zajecia.size(); l++) {
+            if (zajecia.get(l).getIdNauczyciela() == idNauczyciela) {
+                listaZajecNauczycielaId.add(zajecia.get(l));
+            }
+        }
+        return listaZajecNauczycielaId;
+    }
+
+    private static ArrayList<Nauczyciel> listaNauczycieliKlasy(String nazwaKlasy) {
+        ArrayList<Nauczyciel> listaNauczycieliKlasy = new ArrayList<Nauczyciel>();
+        ArrayList<Integer> listaIdNauczycieliKlasy = new ArrayList<Integer>();
+        for (Zajecie zajecieKlasy : listaZajecKlasy(nazwaKlasy)) {
+            if (!listaIdNauczycieliKlasy.contains(zajecieKlasy.getIdNauczyciela())) {
+                listaIdNauczycieliKlasy.add(zajecieKlasy.getIdNauczyciela());
+                listaNauczycieliKlasy.add(nauczyciele.get(zajecieKlasy.getIdNauczyciela() - 1));
+            }
+        }
+        return listaNauczycieliKlasy;
+    }
+
     private static ArrayList<Uczen> podajListaAlfabetUczniowSzkoly() {
         ArrayList<Uczen> listaAlfabetUczniowSzkoly = new ArrayList<Uczen>(uczniowieSzkoly);
         ArrayList<String> listaAlfabetNazwUczniowSzkoly = new ArrayList<String>();
@@ -660,6 +683,61 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             }
         }
         return listaAlfabetUczniowSzkoly;
+    }
+
+    private static String nazwaZajeciaDlaKlasaDzienGodz(String nazwaKlasy, String dzienTygodnia, int godzDnia) {
+        String nazwaZajeciaDlaKlasaDzienGodz = "";
+        for (PlanZajec pz : planyZajec) {
+            if (pz.getIdPlanZajec() > 0) {
+                if (zajecia.get(pz.getIdZajecie() - 1).getIdKlasa() == podajIdKlasy(nazwaKlasy) && pz.getDzienTygodniaZajec().equals(dzienTygodnia) && pz.getGodzRozpZajec() == godzDnia) {
+                    for (PrzedmiotNauczania p : przedmiotyNauczania) {
+                        if (zajecia.get(pz.getIdZajecie() - 1).getIdPrzedmiotNauczania() == p.getIdPrzedmiotNauczania()) {
+                            nazwaZajeciaDlaKlasaDzienGodz = p.getPrzedmiotNauczania() + " " + nauczyciele.get(zajecia.get(pz.getIdZajecie() - 1).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(zajecia.get(pz.getIdZajecie() - 1).getIdNauczyciela() - 1).getNazwisko();
+                        }
+                    }
+                }
+            }
+        }
+        return nazwaZajeciaDlaKlasaDzienGodz;
+    }
+
+    private static Integer iDZajeciaDlaKlasaDzienGodz(String nazwaKlasy, String dzienTygodnia, int godzDnia) {
+        int iDZajeciaDlaKlasaDzienGodz = -1;
+        for (PlanZajec pz : planyZajec) {
+            if (pz.getIdPlanZajec() > 0) {
+                if (zajecia.get(pz.getIdZajecie() - 1).getIdKlasa() == podajIdKlasy(nazwaKlasy) && pz.getDzienTygodniaZajec().equals(dzienTygodnia) && pz.getGodzRozpZajec() == godzDnia) {
+                    iDZajeciaDlaKlasaDzienGodz = pz.getIdZajecie();
+                }
+            }
+        }
+        return iDZajeciaDlaKlasaDzienGodz;
+    }
+
+    private static ArrayList<Zajecie> spisWolneZajeciaDlaKlasaDzienGodz(String nazwaKlasy, String dzienTygodnia, int godzDnia) {
+        Boolean czyWolnyTermin = true;
+        ArrayList<Zajecie> spisWolneZajeciaDlaKlasaDzienGodz = new ArrayList<Zajecie>();
+        for (Zajecie zajecieKlasy : listaZajecKlasy(nazwaKlasy)) {
+            if (planyZajec.size() > 0) {
+                for (PlanZajec pz : planyZajec) {
+                    if (pz.getIdZajecie() > 0) {
+                        for (Zajecie z : zajecia) {
+                            if (pz.getIdZajecie() == z.getIdZajecie()) {
+                                if (zajecieKlasy.getIdNauczyciela() == z.getIdNauczyciela() && pz.getDzienTygodniaZajec().equals(dzienTygodnia) && pz.getGodzRozpZajec() == godzDnia) {
+                                    czyWolnyTermin = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (czyWolnyTermin) {
+                if (!spisWolneZajeciaDlaKlasaDzienGodz.contains(zajecieKlasy)) {
+                    spisWolneZajeciaDlaKlasaDzienGodz.add(zajecieKlasy);
+                }
+            }
+            czyWolnyTermin = true;
+        }
+        return spisWolneZajeciaDlaKlasaDzienGodz;
     }
 
     private static int podajIdNauczyciela(String imieINazwiskoOsoby) {
@@ -875,6 +953,16 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         }
     }
 
+    private static void zapiszDoPlikuPlanyZajec() {
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("D:\\Java\\Próba1\\ZapisanePliki\\PlanyZajec.txt"));
+            out.writeObject(planyZajec);
+            out.close();
+        } catch (IOException ioe) {
+            System.out.println("Error!");
+        }
+    }
+
     private static ArrayList<Uczen> odczytZPlikuUczniowieSzkoly() {
         ArrayList<Uczen> uczniowieSzkolyOdczyt = new ArrayList<>();
         try {
@@ -987,6 +1075,22 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return odczytZPlikuOcenyUczniow;
     }
 
+    private static ArrayList<PlanZajec> odczytZPlikuPlanyZajec() {
+        ArrayList<PlanZajec> odczytZPlikuPlanyZajec = new ArrayList<PlanZajec>();
+        try {
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream("D:\\Java\\Próba1\\ZapisanePliki\\PlanyZajec.txt"));
+            odczytZPlikuPlanyZajec = (ArrayList<PlanZajec>) in.readObject();
+            System.out.println("Oczyt pliku PlanyZajec.txt");
+            in.close();
+        } catch (IOException ioe) {
+            System.out.println("Error!");
+        } catch (ClassNotFoundException exc) {
+            System.out.println("Nie można odnaleźć klasy obiektu");
+            System.exit(1);
+        }
+        return odczytZPlikuPlanyZajec;
+    }
+
     private static void zestawienieSzkola() {
     }
 
@@ -1007,21 +1111,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         panelMain.setBackground(Color.BLUE);
         mainFrame.setJMenuBar(createMenuGlowne());
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //mainFrame.pack();
         mainFrame.setVisible(true);
-    }
-
-    private static JButton ButtonActPerfor(String name) {
-        button = new JButton(name);
-        button.setPreferredSize(new Dimension(400, 50));
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                panelMain.setBackground(Color.RED);
-                //tabbedPanel.getSelectedComponent().setBackground(Color.BLUE);
-            }
-        });
-        return button;
     }
 
     private static Integer newGradeFor(String NamePupilSubject) {
@@ -1111,11 +1201,10 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         for (PrzedmiotNauczania pn : przedmiotyNauczania) {
             nazwyDostepnychPrzedmiotow.add(pn.getPrzedmiotNauczania());
         }
-        for (String NP : NAZWY_PRZEDMIOTOW) {
+        for (String NP : NAZWY_PRZEDMIOTOW_USTAWA) {
             if (!nazwyDostepnychPrzedmiotow.contains(NP)) {
                 nazwyDostepnychPrzedmiotowDoWyboru.add(NP);
             }
-
         }
         nazwyDostepnychPrzedmiotowDoWyboru.sort(null);
         if (nazwyDostepnychPrzedmiotowDoWyboru.size() > 0) {
@@ -1150,19 +1239,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         return nowyNauczyciel;
     }
 
-    private static JComboBox<String> ComboBoxActPerfor() {
-        JComboBox<String> box1 = new JComboBox<String>();
-        box1.addItem("pos.1");
-        box1.addItem("pos.2");
-        box1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(((JComboBox) e.getSource()).getSelectedItem());
-            }
-        });
-        return box1;
-    }
-
     private static JMenuBar createMenuGlowne() {
         LinkedHashMap<String, String[]> rows1 = new LinkedHashMap<>();
         LinkedHashMap<String, String[]> rowsMain = new LinkedHashMap<>();
@@ -1186,7 +1262,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         String D2 = "D2";
         String D3 = "D3";
         String D4 = "D4";
-        String menuE = "ZESTAWIENIE INFORMACJI O SZKOLE";
+        String menuE = "PLAN ZAJĘĆ";
         String E1 = "E1";
         String E2 = "E2";
         String E3 = "E3";
@@ -1224,12 +1300,14 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         menuCNazwyTab[menuCNazwyTab.length - 1] = "Spis ";
         String[] menuDNazwyTab = new String[1];
         menuDNazwyTab[0] = "Alfabetyczny spis uczniów";
+        String[] menuENazwyTab = new String[1];
+        menuENazwyTab[0] = "Plan zajęć wszystkie klasy";
         rowsMain.put(menuA, menuANazwyTab);
         rowsMain.put(menuB, menuBNazwyTab);
         rowsMain.put(menuC, menuCNazwyTab);
         rowsMain.put(menuD, menuDNazwyTab);
-        rowsMain.put(menuE, new String[]{E1, E2, E3, E4});
-        rowsMain.put(menuF, new String[]{F1, F2, F3, F4});
+        rowsMain.put(menuE, menuENazwyTab);
+        //rowsMain.put(menuF, new String[]{F1, F2, F3, F4});
         //rows1.put(A1, new String[]{"A1_1", "A1_2", "A1_3"});
         //rows1.put(A2, new String[]{"A2_1", "A2_2", "A2_3"});
         //rows1.put(A3, new String[]{"A3_1", "A3_2", "A3_3"});
@@ -1266,8 +1344,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                             box2 = new Box(BoxLayout.X_AXIS);
                             box3 = new Box(BoxLayout.Y_AXIS);
                             selectedColumn = -1;
-                            //selectedRow = -1;
-                            //headTable2 = new JLabel("");
                             if (m.equals(menuA)) {
                                 box3.add(new JLabel(" "));
                                 box3.add(new JLabel(" "));
@@ -1288,11 +1364,8 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                 box2.add(box3);
                                 scrolPanelMain.setViewportView(createPanelUczniowie(m1));
                             }
-                            if (!m.equals(menuA) && !m.equals(menuB) && !m.equals(menuC) && !m.equals(menuD)) {
-                                panelMain.add(ButtonActPerfor("RED " + m + " / " + m1));
-                                panelMain.setBackground(Color.BLACK);
-                                panelMain.setBackground(Color.BLUE);
-                                scrolPanelMain.setViewportView(panelMain);
+                            if (m.equals(menuE)) {
+                                scrolPanelMain.setViewportView(createPanelPlanZajec(m1));
                             }
                         }
                     });
@@ -1504,7 +1577,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                 tableSpisOcen.setValueAt(sredniaOcenKlasy(klasy.get(lo).getNazwaKlasy()), lo, 2);
             }
             tableSpisOcen.setAutoCreateRowSorter(false);
-            //tableSpisOcen.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             tableSpisOcen.getColumn(columnNames[0]).setPreferredWidth(2);
             tableSpisOcen.getColumn(columnNames[1]).setPreferredWidth(800);
             tableSpisOcen.getColumn(columnNames[2]).setPreferredWidth(10);
@@ -1671,11 +1743,11 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             boxMain.add(headTable1);
             boxMain.add(table1.getTableHeader());
             boxMain.add(table1);
-            JButton buttonNewAactivity = new JButton("Dodaj nowe zajęcie nauczyciela " + imieINazwiskoNauczyciela);
+            JButton buttonAddNewActivity = new JButton("Dodaj nowe zajęcie nauczyciela " + imieINazwiskoNauczyciela);
             box2.add(Box.createGlue());
-            box2.add(buttonNewAactivity);
+            box2.add(buttonAddNewActivity);
             boxMain.add(box2);
-            buttonNewAactivity.addActionListener(new ActionListener() {
+            buttonAddNewActivity.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     PrzedmiotNauczania nowyPrzedmiot = wybierzNowyPrzedmiotZajeciaNauczycielaId(podajIdNauczyciela(imieINazwiskoNauczyciela));
@@ -1738,7 +1810,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             boxMain.add(headTable1);
             boxMain.add(table1.getTableHeader());
             boxMain.add(table1);
-
             JButton buttonNewTeacher = new JButton("Dodaj nowego nauczyciela");
             box2.add(Box.createGlue());
             box2.add(buttonNewTeacher);
@@ -1754,10 +1825,10 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     mainFrame.remove(menuBar);
                     mainFrame.setJMenuBar(createMenuGlowne());
                     mainFrame.setVisible(true);
+                    box2.removeAll();
                     createPanelNauczyciele(imieINazwiskoNauczyciela);
                 }
             });
-
             JScrollPane scrollBox = new JScrollPane(boxMain);
             panelNauczyciele.add(scrollBox);
             panelNauczyciele.setSize(widthScreen, heightScreen);
@@ -1868,7 +1939,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             panelUczniowie.add(scrollBox);
             panelUczniowie.setSize(widthScreen, heightScreen);
             panelUczniowie.setBackground(Color.BLUE);
-
             frameSub.setVisible(false);
             frameSub.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frameSub.setFocusableWindowState(false);
@@ -1887,7 +1957,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     }
                 }
             });
-
             panelUczniowie.addHierarchyListener(new HierarchyListener() {
                 @Override
                 public void hierarchyChanged(HierarchyEvent e) {
@@ -1898,7 +1967,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     }
                 }
             });
-
             for (int i = 0; i < tableSpisUcziow.getColumnCount(); i++) {
                 tableSpisUcziow.getColumn(columnNames[i]).setCellRenderer(new TableCellRenderer() {
                     @Override
@@ -1938,7 +2006,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                 frameSub.getContentPane().removeAll();
                                 frameSub.setVisible(false);
                                 paneSub.removeAll();
-                                frameSub.setTitle(tableSpisUcziow.getValueAt(initialSelectedRow, 0).toString() + " " + tableSpisUcziow.getValueAt(initialSelectedRow, 1).toString());
+                                frameSub.setTitle("Dzienniczek ucznia " + tableSpisUcziow.getValueAt(initialSelectedRow, 0).toString() + " " + tableSpisUcziow.getValueAt(initialSelectedRow, 1).toString());
                                 JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(initialSelectedRow).getidUcznia());
                                 paneSub.add(scrolDziennikUcznia);
                                 paneSub.setVisible(true);
@@ -1959,7 +2027,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                 frameSub.getContentPane().removeAll();
                                 frameSub.setVisible(false);
                                 paneSub.removeAll();
-                                frameSub.setTitle(tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 0).toString() + " " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 1).toString());
+                                frameSub.setTitle("Dzienniczek ucznia " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 0).toString() + " " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 1).toString());
                                 JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(tableSpisUcziow.getSelectedRow()).getidUcznia());
                                 paneSub.add(scrolDziennikUcznia);
                                 paneSub.setVisible(true);
@@ -1978,8 +2046,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     }
                 });
             }
-
-            JScrollPane scrollPaneSub1 = new JScrollPane();
             JPanel paneSub1 = new JPanel();
             JFrame frameSub1 = new JFrame("Dodaj nowego ucznia");
             frameSub1.setVisible(false);
@@ -2043,7 +2109,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                             createPanelUczniowie(spisUczniow);
                         }
                     });
-
                     wprowadzoneImie.addFocusListener(new FocusListener() {
                         @Override
                         public void focusGained(FocusEvent e) {
@@ -2085,9 +2150,192 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     frameSub1.setFocusableWindowState(true);
                 }
             });
-
         }
         return panelUczniowie;
+    }
+
+    private static JPanel createPanelPlanZajec(String rodzajPlanuZajec) {
+        String[] columnNames = new String[1 + DNI_NAUKI_TYGODNIA_USTAWA.length];
+        columnNames[0] = "Godzina";
+        for (int j = 0; j < DNI_NAUKI_TYGODNIA_USTAWA.length; j++) {
+            columnNames[1 + j] = DNI_NAUKI_TYGODNIA_USTAWA[j];
+        }
+        ArrayList<Zajecie>[][][] tablWolneZajecia = new ArrayList[klasy.size()][GODZINY_ROZPOCZECIA_ZAJEC.length][DNI_NAUKI_TYGODNIA_USTAWA.length];
+        ArrayList<String>[][][] tablNazwWolneZajecia = new ArrayList[klasy.size()][GODZINY_ROZPOCZECIA_ZAJEC.length][DNI_NAUKI_TYGODNIA_USTAWA.length];
+        String[][][] tablNazwZajecPlanu = new String[klasy.size()][GODZINY_ROZPOCZECIA_ZAJEC.length][DNI_NAUKI_TYGODNIA_USTAWA.length];
+        Integer[][][] tablIdZajecPlanu = new Integer[klasy.size()][GODZINY_ROZPOCZECIA_ZAJEC.length][DNI_NAUKI_TYGODNIA_USTAWA.length];
+        JComboBox<String>[][][] tablComboWolneZajeciaDoWyboru = new JComboBox[klasy.size()][GODZINY_ROZPOCZECIA_ZAJEC.length][DNI_NAUKI_TYGODNIA_USTAWA.length];
+        for (int k = 0; k < klasy.size(); k++) {
+            String nazwaKlasy = klasy.get(k).getNazwaKlasy();
+            for (int i = 0; i < GODZINY_ROZPOCZECIA_ZAJEC.length; i++) {
+                for (int j = 0; j < DNI_NAUKI_TYGODNIA_USTAWA.length; j++) {
+                    tablWolneZajecia[k][i][j] = spisWolneZajeciaDlaKlasaDzienGodz(nazwaKlasy, DNI_NAUKI_TYGODNIA_USTAWA[j], GODZINY_ROZPOCZECIA_ZAJEC[i]);
+                    tablNazwZajecPlanu[k][i][j] = nazwaZajeciaDlaKlasaDzienGodz(nazwaKlasy, DNI_NAUKI_TYGODNIA_USTAWA[j], GODZINY_ROZPOCZECIA_ZAJEC[i]);
+                    tablIdZajecPlanu[k][i][j] = iDZajeciaDlaKlasaDzienGodz(nazwaKlasy, DNI_NAUKI_TYGODNIA_USTAWA[j], GODZINY_ROZPOCZECIA_ZAJEC[i]);
+                    tablNazwWolneZajecia[k][i][j] = new ArrayList<String>();
+                    tablNazwWolneZajecia[k][i][j].add(tablNazwZajecPlanu[k][i][j]);
+                    tablNazwWolneZajecia[k][i][j].add("");
+                    for (int l = 0; l < tablWolneZajecia[k][i][j].size(); l++) {
+                        String nazwaWolneZajecieKlasy = przedmiotyNauczania.get(tablWolneZajecia[k][i][j].get(l).getIdPrzedmiotNauczania() - 1).getPrzedmiotNauczania() + " " + nauczyciele.get(tablWolneZajecia[k][i][j].get(l).getIdNauczyciela() - 1).getImie() + " " + nauczyciele.get(tablWolneZajecia[k][i][j].get(l).getIdNauczyciela() - 1).getNazwisko();
+                        tablNazwWolneZajecia[k][i][j].add(nazwaWolneZajecieKlasy);
+                    }
+                }
+            }
+        }
+        JPanel[] tablPanelPlanZajec = new JPanel[klasy.size()];
+        for (int k = 0; k < klasy.size(); k++) {
+            tablPanelPlanZajec[k] = new JPanel();
+        }
+        JPanel panelPlanZajec = new JPanel();
+        panelPlanZajec.setLayout(new GridLayout(klasy.size(), 1, 10, 0));
+        JButton buttonEditScheduleOk = new JButton("OK");
+        buttonEditScheduleOk.setAlignmentX(CENTER_ALIGNMENT);
+        JButton buttonEditScheduleCancel = new JButton("CANCEL");
+        buttonEditScheduleCancel.setAlignmentX(CENTER_ALIGNMENT);
+        JButton buttonEditScheduleEdit = new JButton("Edycja planu zajęć");
+        buttonEditScheduleEdit.setAlignmentX(CENTER_ALIGNMENT);
+        for (int k = 0; k < klasy.size(); k++) {
+            String nazwaKlasy = klasy.get(k).getNazwaKlasy();
+            tablPanelPlanZajec[k].removeAll();
+            tablPanelPlanZajec[k].setLayout(new GridLayout(GODZINY_ROZPOCZECIA_ZAJEC.length + 1, DNI_NAUKI_TYGODNIA_USTAWA.length, 2, 2));
+            tablPanelPlanZajec[k].add(new Label("Godzina")).setBackground(Color.white);
+            for (int j = 0; j < DNI_NAUKI_TYGODNIA_USTAWA.length; j++) {
+                Label labelGodz = new Label();
+                labelGodz.setText(DNI_NAUKI_TYGODNIA_USTAWA[j]);
+                labelGodz.setBackground(Color.WHITE);
+                labelGodz.setAlignment(Label.CENTER);
+                tablPanelPlanZajec[k].add(labelGodz);
+            }
+            for (int i = 0; i < GODZINY_ROZPOCZECIA_ZAJEC.length; i++) {
+                tablPanelPlanZajec[k].add(new Label(Integer.toString(GODZINY_ROZPOCZECIA_ZAJEC[i]))).setBackground(Color.white);
+                for (int j = 0; j < DNI_NAUKI_TYGODNIA_USTAWA.length; j++) {
+                    if (editSchedule) {
+                        String[] tablNazwWolneZajeciaKlasa = new String[tablNazwWolneZajecia[k][i][j].size()];
+                        for (int z = 0; z < tablNazwWolneZajecia[k][i][j].size(); z++) {
+                            tablNazwWolneZajeciaKlasa[z] = tablNazwWolneZajecia[k][i][j].get(z);
+                        }
+                        tablComboWolneZajeciaDoWyboru[k][i][j] = new JComboBox<String>(tablNazwWolneZajeciaKlasa);
+                        if (tablIdZajecPlanuPrevious[k][i][j] != tablIdZajecPlanu[k][i][j]) {
+                            tablComboWolneZajeciaDoWyboru[k][i][j].setBackground(Color.YELLOW);
+                        }
+                        tablComboWolneZajeciaDoWyboru[k][i][j].setVisible(true);
+                        tablPanelPlanZajec[k].add(tablComboWolneZajeciaDoWyboru[k][i][j]);
+                        tablPanelPlanZajec[k].setVisible(true);
+                        int finalK = k;
+                        int finalI = i;
+                        int finalJ = j;
+                        tablComboWolneZajeciaDoWyboru[k][i][j].addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                boolean changeSelected = false;
+                                if (tablComboWolneZajeciaDoWyboru[finalK][finalI][finalJ].getSelectedIndex() > 0) {
+                                    if (tablComboWolneZajeciaDoWyboru[finalK][finalI][finalJ].getSelectedItem().equals("")) {
+                                        for (PlanZajec pz : planyZajec) {
+                                            if (pz.getIdZajecie() == tablIdZajecPlanu[finalK][finalI][finalJ] && pz.getGodzRozpZajec() == GODZINY_ROZPOCZECIA_ZAJEC[finalI] && pz.getDzienTygodniaZajec().equals(DNI_NAUKI_TYGODNIA_USTAWA[finalJ])) {
+                                                planyZajec.set(planyZajec.indexOf(pz), new PlanZajec());
+                                            }
+                                        }
+                                    }
+                                    if (tablComboWolneZajeciaDoWyboru[finalK][finalI][finalJ].getSelectedIndex() > 1) {
+                                        for (PlanZajec pz : planyZajec) {
+                                            if (pz.getIdZajecie() == tablIdZajecPlanu[finalK][finalI][finalJ] && pz.getGodzRozpZajec() == GODZINY_ROZPOCZECIA_ZAJEC[finalI] && pz.getDzienTygodniaZajec().equals(DNI_NAUKI_TYGODNIA_USTAWA[finalJ])) {
+                                                planyZajec.set(planyZajec.indexOf(pz), new PlanZajec(planyZajec.indexOf(pz) + 1, tablWolneZajecia[finalK][finalI][finalJ].get(tablComboWolneZajeciaDoWyboru[finalK][finalI][finalJ].getSelectedIndex() - 2).getIdZajecie(), DNI_NAUKI_TYGODNIA_USTAWA[finalJ], GODZINY_ROZPOCZECIA_ZAJEC[finalI]));
+                                                changeSelected = true;
+                                            }
+                                        }
+                                        if (!changeSelected) {
+                                            planyZajec.add(new PlanZajec(planyZajec.size() + 1, tablWolneZajecia[finalK][finalI][finalJ].get(tablComboWolneZajeciaDoWyboru[finalK][finalI][finalJ].getSelectedIndex() - 2).getIdZajecie(), DNI_NAUKI_TYGODNIA_USTAWA[finalJ], GODZINY_ROZPOCZECIA_ZAJEC[finalI]));
+                                        }
+                                    }
+                                    editSchedule = true;
+                                    panelMain.removeAll();
+                                    paneSub.removeAll();
+                                    frameSub.getContentPane().removeAll();
+                                    frameSub.setVisible(false);
+                                    panelPlanZajec.removeAll();
+                                    scrolPanelMain.setViewportView(createPanelPlanZajec("m1"));
+                                    mainFrame.getContentPane().add(scrolPanelMain, BorderLayout.CENTER);
+                                    mainFrame.setVisible(true);
+                                }
+                            }
+                        });
+                    } else {
+                        Label nazwaZajeciaPlanu = new Label(tablNazwZajecPlanu[k][i][j]);
+                        nazwaZajeciaPlanu.setFont(new Font(Font.DIALOG, Font.BOLD, 12));
+                        tablPanelPlanZajec[k].add(nazwaZajeciaPlanu).setBackground(Color.white);
+                    }
+                }
+            }
+            tablPanelPlanZajec[k].setBackground(Color.BLUE);
+            Box boxPlanZajec = new Box(BoxLayout.Y_AXIS);
+            if (k == 0) {
+                if (editSchedule) {
+                    Box boxEditSchedule = new Box(BoxLayout.X_AXIS);
+                    boxEditSchedule.add(buttonEditScheduleOk);
+                    boxEditSchedule.add(buttonEditScheduleCancel);
+                    boxPlanZajec.add(boxEditSchedule);
+                } else {
+                    boxPlanZajec.add(buttonEditScheduleEdit);
+                }
+            }
+            Label labelNazwaKlasy = new Label("Klasa Nr " + nazwaKlasy);
+            labelNazwaKlasy.setAlignment(Label.CENTER);
+            labelNazwaKlasy.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+            boxPlanZajec.add(labelNazwaKlasy).setBackground(Color.LIGHT_GRAY);
+            boxPlanZajec.add(tablPanelPlanZajec[k]);
+            panelPlanZajec.add(boxPlanZajec);
+        }
+        buttonEditScheduleEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tablIdZajecPlanuPrevious = tablIdZajecPlanu;
+                planyZajecPrevious = new ArrayList<PlanZajec>();
+                planyZajecPrevious.addAll(planyZajec);
+                editSchedule = true;
+                panelMain.removeAll();
+                paneSub.removeAll();
+                frameSub.getContentPane().removeAll();
+                frameSub.setVisible(false);
+                panelPlanZajec.removeAll();
+                scrolPanelMain.setViewportView(createPanelPlanZajec("m1"));
+                mainFrame.getContentPane().add(scrolPanelMain, BorderLayout.CENTER);
+                mainFrame.setVisible(true);
+            }
+        });
+        buttonEditScheduleOk.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                zapiszDoPlikuPlanyZajec();
+                editSchedule = false;
+                panelMain.removeAll();
+                paneSub.removeAll();
+                frameSub.getContentPane().removeAll();
+                frameSub.setVisible(false);
+                panelPlanZajec.removeAll();
+                scrolPanelMain.setViewportView(createPanelPlanZajec("m1"));
+                mainFrame.getContentPane().add(scrolPanelMain, BorderLayout.CENTER);
+                mainFrame.setVisible(true);
+            }
+        });
+        buttonEditScheduleCancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editSchedule = false;
+                planyZajec = new ArrayList<PlanZajec>();
+                planyZajec.addAll(planyZajecPrevious);
+                panelMain.removeAll();
+                paneSub.removeAll();
+                frameSub.getContentPane().removeAll();
+                frameSub.setVisible(false);
+                panelPlanZajec.removeAll();
+                scrolPanelMain.setViewportView(createPanelPlanZajec("m1"));
+                mainFrame.getContentPane().add(scrolPanelMain, BorderLayout.CENTER);
+                mainFrame.setVisible(true);
+            }
+        });
+        panelPlanZajec.setBackground(Color.BLUE);
+        panelPlanZajec.setVisible(true);
+        return panelPlanZajec;
     }
 
     private static JScrollPane dzienniczekUczniaId(int idUcznia) {
