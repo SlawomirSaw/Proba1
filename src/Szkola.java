@@ -1112,6 +1112,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
         mainFrame.setJMenuBar(createMenuGlowne());
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setVisible(true);
+        mainFrame.revalidate();
     }
 
     private static Integer newGradeFor(String NamePupilSubject) {
@@ -1325,14 +1326,10 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                         JMenuItem subMenu2 = new JMenuItem(m2);
                         subMenu1.add(subMenu2);
                         subMenu1.addSeparator();
-                        subMenu2.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                            }
-                        });
                     }
                 } else {
                     JMenuItem subMenu11 = new JMenuItem(m1);
+                    subMenu11.setVisible(true);
                     menu.add(subMenu11);
                     subMenu11.addActionListener(new ActionListener() {
                         @Override
@@ -1374,7 +1371,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             }
         }
         mainFrame.getContentPane().add(scrolPanelMain, BorderLayout.CENTER);
-        mainFrame.setVisible(true);
         return menuBar;
     }
 
@@ -1942,7 +1938,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             frameSub.setVisible(false);
             frameSub.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frameSub.setFocusableWindowState(false);
-            frameSub.setLocationRelativeTo(panelUczniowie);
+            //frameSub.setLocationRelativeTo(panelUczniowie);
             frameSub.addHierarchyListener(new HierarchyListener() {
                 @Override
                 public void hierarchyChanged(HierarchyEvent e) {
@@ -2008,8 +2004,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                 paneSub.removeAll();
                                 frameSub.setTitle("Dzienniczek ucznia " + tableSpisUcziow.getValueAt(initialSelectedRow, 0).toString() + " " + tableSpisUcziow.getValueAt(initialSelectedRow, 1).toString());
                                 JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(initialSelectedRow).getidUcznia());
-                                paneSub.add(scrolDziennikUcznia);
-                                paneSub.setVisible(true);
                                 frameSub.getContentPane().add(scrolDziennikUcznia);
                                 selectedRow = initialSelectedRow;
                                 frameSub.setBounds(scrollBox.getLocationOnScreen().x + scrollBox.getWidth() + 2, scrollBox.getLocationOnScreen().y, 600, 300);
@@ -2029,8 +2023,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                                 paneSub.removeAll();
                                 frameSub.setTitle("Dzienniczek ucznia " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 0).toString() + " " + tableSpisUcziow.getValueAt(tableSpisUcziow.getSelectedRow(), 1).toString());
                                 JScrollPane scrolDziennikUcznia = dzienniczekUczniaId(uczniowieSzkolySpisAlfabet.get(tableSpisUcziow.getSelectedRow()).getidUcznia());
-                                paneSub.add(scrolDziennikUcznia);
-                                paneSub.setVisible(true);
                                 frameSub.getContentPane().add(scrolDziennikUcznia);
                                 selectedRow = tableSpisUcziow.getSelectedRow();
                                 frameSub.setVisible(true);
@@ -2199,6 +2191,7 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
             tablPanelPlanZajec[k].removeAll();
             tablPanelPlanZajec[k].setLayout(new GridLayout(GODZINY_ROZPOCZECIA_ZAJEC.length + 1, DNI_NAUKI_TYGODNIA_USTAWA.length, 2, 2));
             tablPanelPlanZajec[k].add(new Label("Godzina")).setBackground(Color.white);
+            tablPanelPlanZajec[k].setVisible(true);
             for (int j = 0; j < DNI_NAUKI_TYGODNIA_USTAWA.length; j++) {
                 Label labelGodz = new Label();
                 labelGodz.setText(DNI_NAUKI_TYGODNIA_USTAWA[j]);
@@ -2220,7 +2213,6 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                         }
                         tablComboWolneZajeciaDoWyboru[k][i][j].setVisible(true);
                         tablPanelPlanZajec[k].add(tablComboWolneZajeciaDoWyboru[k][i][j]);
-                        tablPanelPlanZajec[k].setVisible(true);
                         int finalK = k;
                         int finalI = i;
                         int finalJ = j;
@@ -2262,11 +2254,13 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                     } else {
                         Label nazwaZajeciaPlanu = new Label(tablNazwZajecPlanu[k][i][j]);
                         nazwaZajeciaPlanu.setFont(new Font(Font.DIALOG, Font.BOLD, 12));
-                        tablPanelPlanZajec[k].add(nazwaZajeciaPlanu).setBackground(Color.white);
+                        nazwaZajeciaPlanu.setBackground(Color.WHITE);
+                        tablPanelPlanZajec[k].add(nazwaZajeciaPlanu);
                     }
                 }
             }
             tablPanelPlanZajec[k].setBackground(Color.BLUE);
+            tablPanelPlanZajec[k].setVisible(true);
             Box boxPlanZajec = new Box(BoxLayout.Y_AXIS);
             if (k == 0) {
                 if (editSchedule) {
@@ -2279,9 +2273,11 @@ public class Szkola extends JFrame implements ActionListener, DaneSzkoly, Serial
                 }
             }
             Label labelNazwaKlasy = new Label("Klasa Nr " + nazwaKlasy);
-            labelNazwaKlasy.setAlignment(Label.CENTER);
-            labelNazwaKlasy.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-            boxPlanZajec.add(labelNazwaKlasy).setBackground(Color.LIGHT_GRAY);
+            JPanel panelNazwaKlasy = new JPanel();
+            panelNazwaKlasy.add(labelNazwaKlasy);
+            panelNazwaKlasy.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+            panelNazwaKlasy.setBackground(Color.LIGHT_GRAY);
+            boxPlanZajec.add(panelNazwaKlasy);
             boxPlanZajec.add(tablPanelPlanZajec[k]);
             panelPlanZajec.add(boxPlanZajec);
         }
